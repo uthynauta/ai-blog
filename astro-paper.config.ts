@@ -2,13 +2,13 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-  url: "https://uthynauta.dev/",
-  title: "The AI corner",
-  description: "Notes on AI systems, agents, and whatever comes next.",
-  author: "Uthynauta",
-  lang: "en",
-  timezone: "America/Mexico_City",
-  dir: "ltr",
+    url: "https://uthynauta.dev/",
+    title: "The AI corner",
+    description: "Notes on AI systems, agents, and whatever comes next.",
+    author: "Uthynauta",
+    lang: "en",
+    timezone: "America/Mexico_City",
+    dir: "ltr",
   },
   posts: {
     perPage: 4,
@@ -22,16 +22,11 @@ export default defineAstroPaperConfig({
     showBackButton: true,
     editPost: {
       enabled: true,
-      url: "https://github.com/satnaing/astro-paper/edit/main/",
+      url: "https://github.com/uthynauta/ai-blog/edit/main/",
     },
     search: "pagefind",
   },
-  socials: [
-    { name: "github",   url: "https://github.com/satnaing/astro-paper" },
-    { name: "x",        url: "https://x.com/username" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/username/" },
-    { name: "mail",     url: "mailto:yourmail@gmail.com" },
-  ],
+  socials: [],
   shareLinks: [
     { name: "whatsapp", url: "https://wa.me/?text=" },
     { name: "facebook", url: "https://www.facebook.com/sharer.php?u=" },
