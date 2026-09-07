@@ -21,8 +21,7 @@ export default defineAstroPaperConfig({
     showArchives: true,
     showBackButton: true,
     editPost: {
-      enabled: true,
-      url: "https://github.com/uthynauta/ai-blog/edit/main/",
+      enabled: false,
     },
     search: "pagefind",
   },

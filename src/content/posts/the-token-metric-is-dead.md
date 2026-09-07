@@ -17,288 +17,288 @@ description: Tokens are still useful for billing and I/O. But as reasoning moves
 
 # The Token Metric Is Dead
 
-I have been following the evolution of how we estimate the work performed by an LLM for a while, and it is becoming increasingly clear to me that the token metric can be not only misleading, but perhaps never represented an engineering unit that could survive changes in the models themselves.
+I have been watching how we estimate the work done by LLMs, and I keep coming back to the same idea: the token metric can be misleading. It may never have been a real engineering unit that could survive big changes in model design.
 
-Its usefulness as a measure of the work performed by a model depends, to a large extent, on a property we are starting to leave behind: an important part of the model's computational process is supposed to be manifested through the sequential generation and processing of tokens.
+The metric works only if one thing stays mostly true: a large part of the model's computation has to show up as a sequence of tokens.
 
-The token may have been a particularly useful metric when autoregressive models were, in essence, text generation machines. Models whose fundamental operation consisted of iteratively predicting the next token.
+That made sense when autoregressive models were basically text generators. Their main job was to predict the next token, then the next one, and then the next one again.
 
-As long as computational work and progress through a sequence of tokens remained tightly related, counting tokens was a reasonable approximation of the work performed.
+As long as computation and token generation moved together, counting tokens was a reasonable way to estimate how much work the model did.
 
-But that relationship began to get complicated with the arrival of reasoning models.
+But reasoning models made that relationship harder to trust.
 
 ## When more tokens stopped meaning better reasoning
 
-We started seeing problems in how computational effort is counted almost from the very moment the concept of "reasoning" appeared on the board.
+We started seeing this problem almost as soon as "reasoning" became part of the model conversation.
 
-Something quickly became clear: the number of tokens generated during a reasoning process does not necessarily reflect the quality of the process that takes us from the *input tokens* to the [*output tokens*](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
+One thing became clear very quickly: the number of tokens generated during reasoning does not always tell us how good the reasoning process was. It does not always explain how the model moved from the _input tokens_ to the [_output tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
 
-In fact, among those of us who regularly use *frontier* models, it has almost become a rule of thumb to avoid maximum reasoning-effort levels unless the task truly justifies them.
+In practice, many people who use _frontier_ models now avoid the highest reasoning-effort settings unless the task really needs them.
 
-More explicit reasoning, or [_reasoning tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count), does not necessarily imply a better answer.
+More visible reasoning, or [_reasoning tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count), does not always mean a better answer.
 
-Depending on the model and the task, indiscriminately increasing effort can add [latency, cost](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), redundancy, and over-verification without producing an equivalent improvement in response quality.
+Depending on the model and the task, raising the effort too much can add [latency, cost](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), repeated checks, and extra noise without giving a matching improvement in quality.
 
-This has to be evaluated case by case, but a good rule of thumb is still to use more conservative effort levels for most use cases and increase them when the complexity of the task truly justifies it.
+You still have to test this case by case. But for most uses, a safer rule is simple: start with a moderate effort level, and increase it only when the task is complex enough to justify it.
 
-The problem is that even that relationship between reasoning and tokens has become increasingly difficult to observe.
+The problem is that even this link between reasoning and tokens is becoming harder to observe.
 
 ## The reasoning we stopped seeing
 
-The main providers of *frontier* models have gradually stopped exposing the raw or literal copy of their models' [*chain of thought*](https://openai.com/index/learning-to-reason-with-llms/) (CoT).
+The main _frontier_ model providers have stopped showing the raw, literal [_chain of thought_](https://openai.com/index/learning-to-reason-with-llms/) (CoT) of their models.
 
-What the user or developer receives is increasingly a partial, [summarized](https://openai.com/index/new-tools-and-features-in-the-responses-api/), or even [encrypted](https://ai.google.dev/gemini-api/docs/thought-signatures) representation of internal reasoning.
+What the user or developer gets is more often a partial, [summarized](https://openai.com/index/new-tools-and-features-in-the-responses-api/), or even [encrypted](https://ai.google.dev/gemini-api/docs/thought-signatures) version of the model's internal reasoning.
 
-The reasons offered by the labs that provide LLM models are understandable and, in many cases, defensible. Among them are protecting competitive advantages, making extraction or distillation harder, improving the user experience, and preserving internal monitoring and safety mechanisms.
+The labs have understandable reasons for this. They want to protect their methods, make model extraction or distillation harder, improve the user experience, and keep some internal safety and monitoring tools private.
 
-But there is a consequence that seems much more interesting to me from an engineering point of view. We lose the ability to directly observe the thing we are using to represent "reasoning effort."
+But there is a more interesting engineering effect: we can no longer directly see the thing we are using as a sign of "reasoning effort".
 
-And then an uncomfortable question appears.
+That leads to an uncomfortable question.
 
-What if, in addition to no longer showing reasoning, tokens were starting to stop representing an important part of the computation that happens during that reasoning?
+What if tokens are not only hiding the reasoning from us, but also starting to hide an important part of the computation behind that reasoning?
 
 ## Thinking without words
 
-In a curiously parallel way, a trend began to appear in the scientific literature: extending the reasoning process beyond a sequence of tokens that "represents" the model's path of thought and allowing part of the process to happen directly on its internal representations.
+Around the same time, a related idea started showing up in research: maybe reasoning does not have to be only a sequence of text tokens. Maybe part of the reasoning process can happen directly inside the model's internal representations.
 
-One of the works that first caught my attention was [**Coconut — Chain of Continuous Thought**](https://arxiv.org/abs/2412.06769).
+One of the first papers that caught my attention was [**Coconut — Chain of Continuous Thought**](https://arxiv.org/abs/2412.06769).
 
-The idea is particularly interesting.
+The idea is simple and interesting.
 
-Instead of necessarily decoding an internal state of the model to immediately convert it into a word or token, that state can be reused to continue the computational process.
+Instead of always decoding an internal state into a word or token, the model can reuse that internal state and keep computing from there.
 
-The model no longer needs to verbalize every intermediate step in order to keep "thinking."
+The model does not have to say every intermediate step in order to keep "thinking".
 
-Coconut, of course, did not come out of nowhere.
+Coconut did not come out from thin-air.
 
-There were already works such as [**Think Before You Speak: Training Language Models With Pause Tokens**](https://arxiv.org/abs/2310.02226), which explored what happens if we allow the model to perform additional computation before producing the next observable token.
+There were already papers like [**Think Before You Speak: Training Language Models With Pause Tokens**](https://arxiv.org/abs/2310.02226), which studied what happens when a model gets extra computation time before producing the next visible token.
 
-Then came [**Quiet-STaR**](https://arxiv.org/abs/2403.09629), exploring mechanisms through which models could learn to "think before speaking."
+Then came [**Quiet-STaR**](https://arxiv.org/abs/2403.09629), which explored ways for models to learn to "think before speaking".
 
-And later, works appeared on [*latent thoughts*](https://arxiv.org/abs/2502.17416), [*looped transformers*](https://arxiv.org/abs/2606.31779), and [*recurrent depth*](https://arxiv.org/abs/2609.01117), where the same layers can be reused iteratively.
+Later, more work appeared on [_latent thoughts_](https://arxiv.org/abs/2502.17416), [_looped transformers_](https://arxiv.org/abs/2606.31779), and [_recurrent depth_](https://arxiv.org/abs/2609.01117), where the same layers can be reused more than once.
 
-Little by little, the idea stopped looking merely novel and became a formal branch of academic research. So the idea began to look useful, implementable, and plausible.
+Step by step, the idea stopped looking like a small trick. It started to look like a real research direction: useful, buildable, and plausible.
 
-And here is where the problem that interests me appears.
+This is where the problem becomes important.
 
 ## A token was never just a piece of a word
 
-For many regular users of *frontier* models, the token looks like a convoluted way of splitting words and text so we can be billed for use of the model, or rather, for the infrastructure needed to operate the model as a service.
+For many people who use _frontier_ models, a token looks like a strange way to cut words and text so providers can bill us for using the model, or more exactly, for using the infrastructure behind the model.
 
-But inside the architecture of these models, something much more interesting happens.
+But inside these models, something more important happens.
 
-Each token is transformed into a vector representation that, layer after layer, incorporates contextual information through the attention mechanisms that gave rise to the [Transformer architecture](https://arxiv.org/abs/1706.03762).
+Each token becomes a vector representation. Layer by layer, that representation adds context through the attention mechanisms that led to the [Transformer architecture](https://arxiv.org/abs/1706.03762).
 
-That is, the token we feed into the model ends up represented inside a multidimensional space far richer than the discrete vocabulary it came from.
+In other words, the token we send to the model ends up inside a much richer multidimensional space than the discrete vocabulary it came from.
 
-There, each position contains information not only about what it originally represents, but also about the relationships it maintains with the rest of the context.
+Each position does not only carry information about the original token. It also carries information about its relationship with the rest of the context.
 
-Once we understand this, we also understand why the token had until now been such a convenient unit for measuring and billing the use of transformer-based models.
+Once we understand this, it becomes clear why tokens were such a convenient unit for measuring and billing transformer-based models.
 
-In an extremely simplified way, we could imagine something like this:
+In a very simplified way, we could think about it like this:
 
 **1 processed token → 1 position in the sequence → 1 equivalent unit of work**
 
-It is not a mathematical equivalence, and the real cost depends, among other things, on sequence length, KV-cache, architecture, and hardware. But as an engineering approximation, it worked quite well.
+This is not a mathematical identity. Real cost also depends on sequence length, KV-cache, architecture, hardware, and many other details. But as an engineering estimate, it worked well enough.
 
-Until we stopped advancing only through tokens.
+Until models stopped moving forward only through tokens.
 
 ## When a loop appears
 
-The problem begins when the amount of processing that happens between two observable tokens stops being approximately constant.
+The problem starts when the amount of processing between two visible tokens is no longer roughly constant.
 
-If we take advantage of the model's internal representations, we can perform multiple transformations before producing the next token.
+If a model can use its internal representations directly, it can run several transformations before producing the next token.
 
-Then we stop having something conceptually similar to:
+Then we no longer have something like:
 
-**1 observable token → 1 equivalent unit of work**
+**1 visible token → 1 equivalent unit of work**
 
-and we can start having:
+We can start having something more like:
 
-**1 output token → N internal transformations → N additional units of compute → 1 observable token**
+**1 output token → N internal transformations → N extra units of compute → 1 visible token**
 
-The number of tokens and the amount of processing then begin to decouple.
+At that point, token count and processing cost begin to separate.
 
-When an LLM architect decides to perform multiple steps on internal representations before emitting the next token, that token stops faithfully representing the amount of computational work we intended to approximate with it.
+When an LLM architect chooses to run several internal steps before the next token is emitted, that token no longer gives a clear measure of how much computation happened.
 
-I am not saying the token was never useful as a unit of measurement. But it is clear that our beloved token, which had been used so widely, is starting to show disadvantages.
+I am not saying tokens were never useful as a unit of measurement. They were useful. But our beloved token is starting to show real limits.
 
-Once we move from models whose processing, generation, and "thinking" were tightly bound to an observable sequence of tokens, and add internal *loops*, we also need to count those cycles if we truly want to measure the amount of computational effort needed to reach a result.
+Once we move from models whose processing, generation, and "thinking" were tightly tied to visible tokens, and we add internal _loops_, we also need to count those loops if we want to measure the real effort behind an answer.
 
-It is like doing multiplication by hand and then saying I solved it in one step because I only wrote the final result once.
+It is like doing a multiplication by hand and then saying I solved it in one step because I only showed the final result once.
 
-To get there, I may have had to perform several digit-by-digit multiplications, store intermediate results, and then add them up.
+To get there, I may have multiplied digit by digit, stored intermediate results, and added them at the end.
 
-I do not doubt there are people capable of solving it mentally in one shot.
+Some people may be able to solve it mentally in one shot.
 
 I am not one of them.
 
-And it would be misleading to claim that my process required a single step simply because I only made the result visible.
+And it would be misleading to say my process took only one step just because the answer was written only one time.
 
 ## And then Astra appeared
 
-Up to this point, we could consider all this a fundamentally academic discussion. And we could say that models with internal-state processing existed exclusively in the scientific literature as exercises in innovation.
+Up to this point, this could sound like a mostly academic discussion. Models with internal-state processing could look like research experiments, not something that matters for real products.
 
-We already have papers, experimental architectures, and some particularly interesting ideas about latent reasoning.
+We already had papers, experimental architectures, and several strong ideas about latent reasoning.
 
-However, in the days before the launch of GPT-6 Astra, reports began to appear pointing precisely in this direction.
+But in the days before GPT-6 Astra was launched, reports started pointing in this same direction.
 
-[*The Information*](https://www.theinformation.com/articles/secret-technique-behind-openais-astra-model-sparks-security-concerns), citing a person with knowledge of the model's development, reported that Astra uses a technique known as *recurrent depth* or *looped transformer*, which allows certain representations to be processed repeatedly before producing the observable output.
+[_The Information_](https://www.theinformation.com/articles/secret-technique-behind-openais-astra-model-sparks-security-concerns), citing a person familiar with the model's development, reported that Astra uses a technique called _recurrent depth_ or _looped transformer_. The idea is that some representations can be processed several times before the model produces visible output.
 
-The report added something even more interesting: OpenAI had allegedly deliberately limited the use of this technique to preserve enough readable *chain of thought* to monitor the model's behavior. But, according to the report, at least some percentage of the reasoning performed by the model would be happening in the previously described representation space before producing a token, or before verbalizing the reasoning, and this had to be controlled to maintain some degree of reliability with respect to the real reasoning process.
+The report added another important detail: OpenAI had allegedly limited the use of this technique on purpose, so the model would still keep enough readable _chain of thought_ for monitoring. According to the report, at least some part of Astra's reasoning would happen in the internal representation space before producing a token, or before putting the reasoning into words. That internal reasoning would need to be controlled so monitoring could still stay useful.
 
-[Other outlets](https://www.theverge.com/ai-artificial-intelligence/988334/openai-astra-ai-monitoring-safety) later picked up the report and the discussion about the implications of *recurrent depth* for reasoning observability.
+[Other outlets](https://www.theverge.com/ai-artificial-intelligence/988334/openai-astra-ai-monitoring-safety) later covered the report and the discussion about what _recurrent depth_ could mean for reasoning observability.
 
-Does this mean we know that Astra extensively uses *recurrent depth*? OpenAI has neither denied nor admitted it. As far as we publicly know, OpenAI has not published an architectural description detailed enough to independently verify this suspicion. But it is interesting for our analysis.
+Does this mean we know Astra uses _recurrent depth_ heavily? No. OpenAI has not confirmed it, and it has not denied it either. As far as the public knows, OpenAI has not published enough architectural detail to verify this claim independently. But it is still relevant to this argument.
 
-Let us return to the point.
+So let us return to the main point.
 
-The possibility of decoupling the amount of internal compute from the number of observable tokens exists in the scientific literature.
+The scientific literature already shows that internal compute can be separated from the number of visible tokens.
 
 Experimental implementations exist.
 
-Works on *looped transformers* and *recurrent depth* exist.
+Research on _looped transformers_ and _recurrent depth_ exists.
 
-And now there are also reports attributing this kind of architecture to one of the most recent and best-performing *frontier* models on benchmarks.
+And now we also have reports that connect this kind of architecture to one of the newest _frontier_ models, and to a model with strong benchmark results.
 
-We still do not know to what extent all these pieces are connected.
+We still do not know how all these pieces connect.
 
 But I think it is reasonable to start asking the question.
 
-Maybe we are not just seeing models that learned to think with fewer tokens.
+Maybe we are not only seeing models that learned to think with fewer tokens.
 
-**Maybe we are starting to see models capable of hiding more of the amount of compute they perform.**
+**Maybe we are starting to see models that can hide more of the compute they use.**
 
 ## So what are we measuring in benchmarks?
 
-This is where the discussion starts to have practical consequences.
+This is where the issue becomes practical.
 
-We are impressed when a model solves a given benchmark using a certain number of *output tokens*. And OpenAI was very specific in reporting [_output tokens_](https://openai.com/index/path-to-astra/)
+We get impressed when a model solves a benchmark with a certain number of _output tokens_. And OpenAI was very specific about reporting [_output tokens_](https://openai.com/index/path-to-astra/)
 .
 Benchmarks help us compare models under known conditions. We compare models. We compare costs. We compare token counts.
 
-We even build curves that try to represent how much "reasoning" we need to reach a given level of performance. And we also tend to associate the number of tokens used with the model's capability, and, for many people even more interestingly, it gives us an estimate of the bill we will pay to run a task.
+We even build curves that try to show how much "reasoning" is needed to reach a certain performance level. And we often connect the number of tokens with model capability. For many people, it also gives a rough estimate of the bill they will pay for a task.
 
-But we rarely ask whether the model, in order to express each of those tokens, performed more internal steps.
+But we rarely ask whether the model had to run extra internal steps before writing each token.
 
-If between two observable tokens a model could execute one, two, five, or N internal iterations, simply comparing the number of tokens stops being a comparison of equivalent quantities.
+If a model can run one, two, five, or N internal iterations between two visible tokens, then comparing only token counts stops being a comparison of equal things.
 
-A model that produces 500 tokens after 500 hypothetical units of computational work did not necessarily do the same work as another model that produces 500 tokens after thousands of internal transformations.
+A model that writes 500 tokens after 500 hypothetical units of work did not necessarily do the same work as another model that writes 500 tokens after thousands of internal transformations.
 
-Both wrote 500 tokens. But that does not necessarily mean they used the same amount of compute to produce them.
+Both wrote 500 tokens. That does not mean both used the same amount of compute.
 
-And there is another particularly interesting hint.
+There is another interesting hint here.
 
-A preprint published in July 2026, [**Not All LLM Reasoning is Visible in the Chain-of-Thought**](https://arxiv.org/abs/2607.22925), studied 13 *frontier* models using synthetic tasks and found that several could benefit from semantically irrelevant filler tokens, with performance improvements of up to 13 percentage points in some experiments.
+A preprint published in July 2026, [**Not All LLM Reasoning is Visible in the Chain-of-Thought**](https://arxiv.org/abs/2607.22925), studied 13 _frontier_ models with synthetic tasks. It found that several models could benefit from filler tokens with no useful meaning, with performance gains of up to 13 percentage points in some experiments.
 
-The result does not prove that Astra uses *recurrent depth*. Nor does it prove what internal mechanism is responsible for the phenomenon. But for the argument I am making here, I do not even need to go that far.
+This result does not prove that Astra uses _recurrent depth_. It also does not prove which internal mechanism caused the effect. But my argument does not need to go that far.
 
-The interesting part is much simpler:
+The interesting point is simpler:
 
-there is experimental evidence suggesting that the amount and semantic content of the tokens we can observe do not necessarily describe all the useful computation that happens while the model reaches an answer.
+there is experimental evidence suggesting that the number and meaning of the tokens we can see do not always describe all the useful computation the model performs before answering.
 
-And if we accept even that possibility, counting tokens and measuring reasoning start becoming two different things.
+If we accept even that possibility, counting tokens and measuring reasoning become two different things.
 
 ## The problem does not end with benchmarks
 
-So far I have talked mainly about the problem from a technical point of view.
+So far, I have mainly talked about the technical side.
 
-But there is a second problem.
+But there is another problem.
 
 Someone has to pay for all that compute.
 
 In 2025, researchers from the University of Maryland published a preprint called [**CoIn — Counting the Invisible Reasoning Tokens in Commercial Opaque LLM APIs**](https://arxiv.org/abs/2505.13778).
 
-The work starts from a rather peculiar situation that already exists in commercial APIs for reasoning models:
+The paper starts from a strange situation that already exists in commercial APIs for reasoning models:
 
 we can be billed for [reasoning tokens whose content we cannot observe](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
 
-The authors take that concern to an even more uncomfortable possibility: if the client cannot observe those tokens, they also cannot independently verify that the amount reported by the provider corresponds exactly to what happened.
+The authors take that concern further: if the customer cannot see those tokens, the customer also cannot independently check that the provider's reported count matches what really happened.
 
-They even propose the concept of *token count inflation* and a mechanism for auditing the quantity and semantic validity of those hidden tokens.
+They also describe the idea of _token count inflation_ and propose a way to audit the amount and semantic value of hidden tokens.
 
-CoIn is a preprint, not a publication we should present as established academic consensus.
+CoIn is a preprint. We should not present it as settled academic consensus.
 
-But its existence seems relevant to me for a different reason:
+But it matters for a different reason:
 
-someone already considered the opacity of *reasoning tokens* billed by commercial APIs interesting enough as a problem to try to build a technical auditing mechanism for it.
+someone already thought the opacity of billed _reasoning tokens_ in commercial APIs was important enough to build a technical audit method for it.
 
-And so we end up with two different problems that start to converge.
+So we end up with two different problems that start to meet.
 
-On one hand, we can have:
+On one side, we can have:
 
-**reasoning tokens that we pay for but cannot observe.**
+**reasoning tokens that we pay for but cannot see.**
 
-And on the other, we can have:
+On the other side, we can have:
 
-**compute or reasoning that happens, but whose magnitude is not necessarily represented by the number of tokens we observe.**
+**compute or reasoning that happens, but whose size is not well represented by the number of tokens we see.**
 
-In both cases, exactly the same question appears:
+In both cases, the same question appears:
 
 **what the hell are we measuring when we say a model used X tokens to solve a task?**
 
 ## The token is not dead. The metric is.
 
-The token is obviously not dead. It remains an extremely useful unit for representing inputs and outputs. It is a necessary step toward the beautiful embedding, or vector representation in latent space.
+The token is obviously not dead. It is still a very useful unit for representing inputs and outputs. It is also a necessary step toward the beautiful embedding, or vector representation in latent space.
 
-It remains fundamental for understanding context windows.
+Tokens are still basic for understanding context windows.
 
-It still has direct implications for memory, KV-cache, throughput, and many other properties of an inference system.
+They still affect memory, KV-cache, throughput, and many other parts of inference systems.
 
-And we will probably keep paying APIs using some variant of this unit for quite some time.
+And we will probably keep paying APIs with some version of this unit for a long time.
 
 What I think is dying is something else:
 
-**the idea that the number of tokens is, by itself, a good enough proxy for how much work a model did.**
+**the idea that the number of tokens, by itself, is a good enough proxy for how much work a model did.**
 
-And that distinction matters.
+That difference matters.
 
-Because we use that metric to compare models. To compare benchmarks. To calculate costs. To design systems. To decide which model should solve a given task. To build *routing* strategies.
+We use this metric to compare models. To compare benchmarks. To calculate costs. To design systems. To choose which model should handle a task. To build _routing_ strategies.
 
-And finally, to try to answer a seemingly simple question:
+And finally, to answer a simple-sounding question:
 
 how much compute do I need to solve this problem?
 
-## A problem of metrology
+## A measurement problem
 
-In metrology, when the variable used to approximate a phenomenon stops faithfully representing what we want to measure, we have to reconsider how we measure it.
+In metrology, when the variable we use to estimate something no longer tracks the thing we actually want to measure, we have to rethink that variable.
 
-That does not mean the previous measure was useless.
+That does not mean the former value was useless.
 
-Nor does it mean it never reasonably represented what we wanted to observe.
+It also does not mean it never worked well enough.
 
-It simply means the system changed.
+It means the system changed.
 
-We cannot keep measuring the same way processes that incorporate internal *loops*, retries, additional steps, or any other form of compute that stops showing up directly in the variable we are counting.
+We cannot keep measuring in the same way when models can use internal _loops_, retries, extra steps, or any other compute that does not show up directly in the variable we are counting.
 
-The friction I notice now is that users, labs, researchers, companies, CTOs/CFOs, and the whole long list of people and organizations that make up the current AI ecosystem are too used to the token.
+The friction now is that users, labs, researchers, companies, CTOs/CFOs, and almost everyone in the AI ecosystem are used to tokens.
 
-We have developed an intuition around it.
+We have built intuition around them.
 
-It is similar to switching from marks or pesetas to euros.
+It is like switching from marks or pesetas to euros.
 
-Almost like mentally calculating how much the grocery cart will cost before getting to the checkout.
+Or like estimating the grocery bill in your head before reaching the checkout.
 
-We know roughly what "100 thousand tokens" means. We know roughly how much a given context might cost. We know roughly how much a certain task should consume.
+We roughly know what "100 thousand tokens" means. We roughly know what a large context might cost. We roughly know how much a certain task should use.
 
-The token became an intuitive unit. And letting go of an intuitive unit always creates friction.
+The token became an intuitive unit. Giving up an intuitive unit is always uncomfortable.
 
-But if we truly want to faithfully represent that quantity we empirically call "reasoning effort," perhaps we need to start thinking about other measures.
+But if we want to measure the thing we call "reasoning effort" more honestly, we may need other measures.
 
-Because, let us be honest, it is not as if *frontier* labs are going to give us GPU time or electricity for free.
+Because, to be honest, _frontier_ labs are not going to give us GPU time or electricity for free.
 
 Compute can disappear from our view. It cannot disappear from the hardware.
 
-It may be useful to present a given benchmark in a favorable light, but in production that compute ends up existing somewhere.
+It may help make a benchmark look better, but in production that compute still exists somewhere.
 
-It shows up as accelerator occupancy, latency, energy consumption, and infrastructure.
+It shows up as accelerator usage, latency, energy use, and infrastructure.
 
-And sooner or later that cost ends up being passed on to API bills and ultimately to the products we all consume.
+Sooner or later, that cost reaches API bills and then the products we all use.
 
-That is why perhaps we should agree on what we are measuring before we get used to paying opaquely for "reasoning tokens" we cannot even observe.
+So maybe we should agree on what we are measuring before we get used to paying opaquely for "reasoning tokens" we cannot even see.
 
-Because counting tokens and measuring compute were, for a while, close enough approximations that we could treat them almost as the same thing.
+For a while, counting tokens and measuring compute were close enough that we could treat them almost as the same thing.
 
-Maybe they no longer are.
+Maybe they are not close enough anymore.
 
-And if real compute starts hiding between tokens, continuing to count only the tokens will not pay the energy bill or the infrastructure needed to reach them.
+And if real compute starts hiding between tokens, counting only the tokens will not pay for the energy or infrastructure needed to produce them.

@@ -28,13 +28,12 @@ const languageNames = {
       <span class="text-muted-foreground">Read in</span>
       <ul class="flex items-center gap-2">
         {translations.map(translation => {
-          const language =
-            translation.data.language === "es" ? "es" : "en";
+          const language = translation.data.language === "es" ? "es" : "en";
           return (
             <li>
               <a
                 href={getPostUrl(translation.id, translation.filePath, locale)}
-                class="decoration-dashed underline-offset-4 hover:text-accent"
+                class="hover:text-accent decoration-dashed underline-offset-4"
                 aria-current={language === currentLanguage ? "page" : undefined}
               >
                 {languageNames[language]}

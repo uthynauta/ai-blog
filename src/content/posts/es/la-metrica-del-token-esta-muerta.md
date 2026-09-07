@@ -31,9 +31,9 @@ Pero esa relación empezó a complicarse con la aparición de los modelos de raz
 
 Empezamos a ver problemas en la forma de contabilizar el esfuerzo computacional prácticamente desde el momento en que el concepto de "razonamiento" apareció en el tablero.
 
-Pronto se volvió evidente algo: la cantidad de tokens generados durante un proceso de razonamiento no refleja necesariamente la calidad del proceso que nos lleva de los *input tokens* a los [*output tokens*](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
+Pronto se volvió evidente algo: la cantidad de tokens generados durante un proceso de razonamiento no refleja necesariamente la calidad del proceso que nos lleva de los _input tokens_ a los [_output tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
 
-De hecho, entre quienes utilizamos habitualmente modelos *frontier* se ha vuelto casi una regla práctica evitar niveles máximos de esfuerzo de razonamiento, q no ser que la tarea realmente los justifique.
+De hecho, entre quienes utilizamos habitualmente modelos _frontier_ se ha vuelto casi una regla práctica evitar niveles máximos de esfuerzo de razonamiento, q no ser que la tarea realmente los justifique.
 
 Más razonamiento explícito, o [_reasoning tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count), no implica necesariamente una mejor respuesta.
 
@@ -45,7 +45,7 @@ El problema es que incluso esa relación entre razonamiento y tokens se ha vuelt
 
 ## El razonamiento que dejamos de ver
 
-Los principales proveedores de modelos *frontier* han ido dejando de exponer la copia cruda o literal del [*chain of thought*](https://openai.com/index/learning-to-reason-with-llms/) (CoT) de sus modelos.
+Los principales proveedores de modelos _frontier_ han ido dejando de exponer la copia cruda o literal del [_chain of thought_](https://openai.com/index/learning-to-reason-with-llms/) (CoT) de sus modelos.
 
 Lo que el usuario o desarrollador recibe es cada vez más una representación parcial, [resumida](https://openai.com/index/new-tools-and-features-in-the-responses-api/) o incluso [cifrada](https://ai.google.dev/gemini-api/docs/thought-signatures) del razonamiento interno.
 
@@ -75,7 +75,7 @@ Ya existían trabajos como [**Think Before You Speak: Training Language Models W
 
 Después apareció [**Quiet-STaR**](https://arxiv.org/abs/2403.09629), explorando mecanismos mediante los cuales los modelos pudieran aprender a "pensar antes de hablar".
 
-Y posteriormente han aparecido trabajos sobre [*latent thoughts*](https://arxiv.org/abs/2502.17416), [*looped transformers*](https://arxiv.org/abs/2606.31779) y [*recurrent depth*](https://arxiv.org/abs/2609.01117), donde las mismas capas pueden reutilizarse iterativamente.
+Y posteriormente han aparecido trabajos sobre [_latent thoughts_](https://arxiv.org/abs/2502.17416), [_looped transformers_](https://arxiv.org/abs/2606.31779) y [_recurrent depth_](https://arxiv.org/abs/2609.01117), donde las mismas capas pueden reutilizarse iterativamente.
 
 Poco a poco, la idea dejó de parecer solamente novedosa, y pasó a convertirse en una rama de investigación académica formal. Por lo que dicha idea empezó a parecer útil, implementable y plausible.
 
@@ -83,7 +83,7 @@ Y aquí aparece el problema que me interesa.
 
 ## Un token nunca fue solamente un pedazo de palabra
 
-Para muchos usuarios habituales de modelos *frontier*, el token parece simplemente una forma rebuscada de partir palabras y texto para poder facturarnos el uso del modelo, o mejor dicho, de la infraestructura necesaria para operar el modelo como servicio.
+Para muchos usuarios habituales de modelos _frontier_, el token parece simplemente una forma rebuscada de partir palabras y texto para poder facturarnos el uso del modelo, o mejor dicho, de la infraestructura necesaria para operar el modelo como servicio.
 
 Pero dentro de la arquitectura de estos modelos ocurre algo bastante más interesante.
 
@@ -123,7 +123,7 @@ Cuando un arquitecto de LLM decide realizar múltiples pasos sobre representacio
 
 No estoy diciendo que el token jamás haya sido útil como unidad de medida. Pero es evidente que nuestro amado token que había sido tan utilizado empieza a presentar desventajas.
 
-Una vez que pasamos de modelos cuyo procesamiento, generación y "pensamiento" estaban fuertemente ligados a una secuencia observable de tokens, y agregamos *loops* internos, es necesario contabilizar también esos ciclos si realmente queremos medir la cantidad de esfuerzo computacional necesario para llegar a un resultado.
+Una vez que pasamos de modelos cuyo procesamiento, generación y "pensamiento" estaban fuertemente ligados a una secuencia observable de tokens, y agregamos _loops_ internos, es necesario contabilizar también esos ciclos si realmente queremos medir la cantidad de esfuerzo computacional necesario para llegar a un resultado.
 
 Es como realizar una multiplicación a mano y afirmar después que la resolví en un solo paso porque solamente escribí una vez el resultado final.
 
@@ -143,23 +143,23 @@ Tenemos ya papers, arquitecturas experimentales y algunas ideas particularmente 
 
 Sin embargo en los días previos al lanzamiento de GPT-6 Astra comenzaron a aparecer reportes que apuntaban precisamente en esta dirección.
 
-[*The Information*](https://www.theinformation.com/articles/secret-technique-behind-openais-astra-model-sparks-security-concerns), citando a una persona con conocimiento del desarrollo del modelo, reportó que Astra utiliza una técnica conocida como *recurrent depth* o *looped transformer*, que permite que determinadas representaciones sean procesadas repetidamente antes de producir la salida observable.
+[_The Information_](https://www.theinformation.com/articles/secret-technique-behind-openais-astra-model-sparks-security-concerns), citando a una persona con conocimiento del desarrollo del modelo, reportó que Astra utiliza una técnica conocida como _recurrent depth_ o _looped transformer_, que permite que determinadas representaciones sean procesadas repetidamente antes de producir la salida observable.
 
-El reporte añadía algo todavía más interesante: OpenAI habría limitado deliberadamente el uso de esta técnica para conservar suficiente *chain of thought* legible como para poder monitorizar el comportamiento del modelo. Pero, de acuerdo al reporte, al menos un porcentaje del razonamiento realizado por el modelo se estaría realizando en el espacio de representacion previamente descrito antes de producir un token, o bien, verbalizar el razonamiento, y este habría tenido que controlarse para mantener cierto grado de fiabilidad respecto al proceso real de razonamiento. 
+El reporte añadía algo todavía más interesante: OpenAI habría limitado deliberadamente el uso de esta técnica para conservar suficiente _chain of thought_ legible como para poder monitorizar el comportamiento del modelo. Pero, de acuerdo al reporte, al menos un porcentaje del razonamiento realizado por el modelo se estaría realizando en el espacio de representacion previamente descrito antes de producir un token, o bien, verbalizar el razonamiento, y este habría tenido que controlarse para mantener cierto grado de fiabilidad respecto al proceso real de razonamiento.
 
-[Otros medios](https://www.theverge.com/ai-artificial-intelligence/988334/openai-astra-ai-monitoring-safety) retomaron posteriormente el reporte y la discusión sobre las implicaciones de *recurrent depth* para la observabilidad del razonamiento.
+[Otros medios](https://www.theverge.com/ai-artificial-intelligence/988334/openai-astra-ai-monitoring-safety) retomaron posteriormente el reporte y la discusión sobre las implicaciones de _recurrent depth_ para la observabilidad del razonamiento.
 
-¿Significa esto que sabemos que Astra utiliza extensivamente *recurrent depth*? OpenAI no lo ha sido desmentido ni admitido. Hasta donde sabemos públicamente, OpenAI no ha publicado una descripción arquitectónica suficientemente detallada que permita comprobar de manera independiente esta sospecha. Pero resulta interesante para nuestro análisis.
+¿Significa esto que sabemos que Astra utiliza extensivamente _recurrent depth_? OpenAI no lo ha sido desmentido ni admitido. Hasta donde sabemos públicamente, OpenAI no ha publicado una descripción arquitectónica suficientemente detallada que permita comprobar de manera independiente esta sospecha. Pero resulta interesante para nuestro análisis.
 
-Retomemos. 
+Retomemos.
 
 La posibilidad de desacoplar la cantidad de cómputo interno de la cantidad de tokens observables existe en la literatura científica.
 
 Existen implementaciones experimentales.
 
-Existen trabajos sobre *looped transformers* y *recurrent depth*.
+Existen trabajos sobre _looped transformers_ y _recurrent depth_.
 
-Y ahora existen también reportes que atribuyen una arquitectura de este tipo a uno de los modelos *frontier* más recientes y con mejor desempeño en los benchmarks.
+Y ahora existen también reportes que atribuyen una arquitectura de este tipo a uno de los modelos _frontier_ más recientes y con mejor desempeño en los benchmarks.
 
 No sabemos todavía hasta qué punto todas estas piezas están conectadas.
 
@@ -173,7 +173,7 @@ Tal vez no estamos viendo solamente modelos que aprendieron a pensar con menos t
 
 Aquí es donde esta discusión empieza a tener consecuencias prácticas.
 
-Nos sorprendemos porque un modelo logra resolver determinado benchmark utilizando cierta cantidad de *output tokens*. Y OpenAI fue muy específico en reportar [_output tokens_](https://openai.com/index/path-to-astra/)
+Nos sorprendemos porque un modelo logra resolver determinado benchmark utilizando cierta cantidad de _output tokens_. Y OpenAI fue muy específico en reportar [_output tokens_](https://openai.com/index/path-to-astra/)
 .
 Los benchmarks nos ayudan a comparar modelos bajo condiciones conocidas. DComparamos modelos. Comparamos costos. Comparamos cantidades de tokens.
 
@@ -189,9 +189,9 @@ Los dos escribieron 500 tokens. Pero eso no significa necesariamente que utiliza
 
 Y existe además otro indicio particularmente interesante.
 
-Un preprint publicado en julio de 2026, [**Not All LLM Reasoning is Visible in the Chain-of-Thought**](https://arxiv.org/abs/2607.22925), estudió 13 modelos *frontier* utilizando tareas sintéticas y encontró que varios podían beneficiarse de tokens de relleno semánticamente irrelevantes, con mejoras de desempeño de hasta 13 puntos porcentuales en algunos experimentos.
+Un preprint publicado en julio de 2026, [**Not All LLM Reasoning is Visible in the Chain-of-Thought**](https://arxiv.org/abs/2607.22925), estudió 13 modelos _frontier_ utilizando tareas sintéticas y encontró que varios podían beneficiarse de tokens de relleno semánticamente irrelevantes, con mejoras de desempeño de hasta 13 puntos porcentuales en algunos experimentos.
 
-El resultado no demuestra que Astra utilice *recurrent depth*. Tampoco demuestra cuál es el mecanismo interno responsable del fenómeno. Pero para el argumento que estoy planteando aquí ni siquiera necesito llegar tan lejos.
+El resultado no demuestra que Astra utilice _recurrent depth_. Tampoco demuestra cuál es el mecanismo interno responsable del fenómeno. Pero para el argumento que estoy planteando aquí ni siquiera necesito llegar tan lejos.
 
 Lo interesante es algo mucho más sencillo:
 
@@ -215,13 +215,13 @@ podemos ser facturados por [tokens de razonamiento cuyo contenido no podemos obs
 
 Los autores llevan esa preocupación hasta una posibilidad todavía más incómoda: si el cliente no puede observar esos tokens, tampoco puede verificar independientemente que la cantidad reportada por el proveedor corresponda exactamente con aquello que ocurrió.
 
-Incluso plantean el concepto de *token count inflation* y proponen un mecanismo de auditoría para verificar la cantidad y validez semántica de esos tokens ocultos.
+Incluso plantean el concepto de _token count inflation_ y proponen un mecanismo de auditoría para verificar la cantidad y validez semántica de esos tokens ocultos.
 
 CoIn es un preprint, no una publicación que debamos presentar como consenso académico establecido.
 
 Pero su existencia me parece relevante por una razón diferente:
 
-alguien ya consideró que la opacidad de los *reasoning tokens* facturados por APIs comerciales era un problema suficientemente interesante como para intentar construir un mecanismo técnico de auditoría.
+alguien ya consideró que la opacidad de los _reasoning tokens_ facturados por APIs comerciales era un problema suficientemente interesante como para intentar construir un mecanismo técnico de auditoría.
 
 Y entonces terminamos con dos problemas diferentes que empiezan a converger.
 
@@ -253,7 +253,7 @@ Lo que creo que está muriendo es otra cosa:
 
 Y esa distinción importa.
 
-Porque utilizamos esa métrica para comparar modelos. Para comparar benchmarks. Para calcular costos. Para diseñar sistemas. Para decidir qué modelo debe resolver determinada tarea. Para construir estrategias de *routing*.
+Porque utilizamos esa métrica para comparar modelos. Para comparar benchmarks. Para calcular costos. Para diseñar sistemas. Para decidir qué modelo debe resolver determinada tarea. Para construir estrategias de _routing_.
 
 Y finalmente para intentar responder una pregunta aparentemente sencilla:
 
@@ -269,7 +269,7 @@ Tampoco significa que nunca haya representado razonablemente aquello que quería
 
 Significa simplemente que el sistema cambió.
 
-No podemos seguir midiendo de la misma manera procesos que incorporan *loops* internos, reintentos, pasos adicionales o cualquier otra forma de cómputo que deje de manifestarse directamente en la variable que estamos contando.
+No podemos seguir midiendo de la misma manera procesos que incorporan _loops_ internos, reintentos, pasos adicionales o cualquier otra forma de cómputo que deje de manifestarse directamente en la variable que estamos contando.
 
 La fricción que noto ahora es que usuarios, laboratorios, investigadores, empresas, CTOs/CFOs y todo el largo etcétera que integra el ecosistema actual de la IA estamos demasiado acostumbrados al token.
 
@@ -285,7 +285,7 @@ El token se convirtió en una unidad intuitiva. Y desprendernos de una unidad in
 
 Pero si realmente queremos representar fielmente esa cantidad que empíricamente llamamos "esfuerzo de razonamiento", quizá necesitemos empezar a pensar en otras medidas.
 
-Porque, seamos honestos, tampoco es como si los laboratorios *frontier* fueran a regalarnos tiempo de GPU o energía eléctrica.
+Porque, seamos honestos, tampoco es como si los laboratorios _frontier_ fueran a regalarnos tiempo de GPU o energía eléctrica.
 
 El cómputo puede desaparecer de nuestra vista. No puede desaparecer de los fierros.
 
