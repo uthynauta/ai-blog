@@ -14,36 +14,43 @@ import ShareLinks from "./_components/ShareLinks.astro";
 import BackButton from "./_components/BackButton.astro";
 import BackToTopButton from "./_components/BackToTopButton.astro";
 import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
+import LanguageSwitch from "./_components/LanguageSwitch.astro";
 import config from "@/config";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts");
-  const sortedPosts = getSortedPosts(posts);
+  const sortedPosts = getSortedPosts(posts, { includeTranslations: true });
 
-  return sortedPosts.map((post, index) => ({
-    params: { slug: getPostSlug(post.id, post.filePath) },
-    props: {
-      post,
-      // sortedPosts is newest-first, so "older" (prev) is a higher index
-      // and "newer" (next) is a lower index.
-      prevPost:
-        index < sortedPosts.length - 1
-          ? {
-              id: sortedPosts[index + 1].id,
-              title: sortedPosts[index + 1].data.title,
-              filePath: sortedPosts[index + 1].filePath,
-            }
-          : null,
-      nextPost:
-        index > 0
-          ? {
-              id: sortedPosts[index - 1].id,
-              title: sortedPosts[index - 1].data.title,
-              filePath: sortedPosts[index - 1].filePath,
-            }
-          : null,
-    },
-  }));
+  return sortedPosts.map(post => {
+    const postLanguage = post.data.language ?? config.site.lang;
+    const languagePosts = getSortedPosts(posts, { language: postLanguage });
+    const index = languagePosts.findIndex(entry => entry.id === post.id);
+
+    return {
+      params: { slug: getPostSlug(post.id, post.filePath) },
+      props: {
+        post,
+        // languagePosts is newest-first, so "older" (prev) is a higher index
+        // and "newer" (next) is a lower index.
+        prevPost:
+          index >= 0 && index < languagePosts.length - 1
+            ? {
+                id: languagePosts[index + 1].id,
+                title: languagePosts[index + 1].data.title,
+                filePath: languagePosts[index + 1].filePath,
+              }
+            : null,
+        nextPost:
+          index > 0
+            ? {
+                id: languagePosts[index - 1].id,
+                title: languagePosts[index - 1].data.title,
+                filePath: languagePosts[index - 1].filePath,
+              }
+            : null,
+      },
+    };
+  });
 }
 
 type AdjacentPost = {
@@ -71,9 +78,19 @@ const {
   timezone,
   tags,
   hideEditPost,
+  language,
+  translationKey,
 } = post.data;
 
 const { Content } = await render(post);
+const translations = translationKey
+  ? (await getCollection("posts")).filter(
+      entry =>
+        entry.data.translationKey === translationKey &&
+        entry.id !== post.id &&
+        !entry.data.draft
+    )
+  : [];
 
 let ogImageUrl: string | undefined;
 
@@ -133,6 +150,8 @@ const ogImage = ogImageUrl
       </span>
       <EditPost {hideEditPost} {post} class="max-sm:hidden" />
     </div>
+
+    <LanguageSwitch currentLanguage={language} {translations} />
 
     <article
       id="article"

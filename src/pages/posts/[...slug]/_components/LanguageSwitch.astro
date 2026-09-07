@@ -1,0 +1,48 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getPostUrl } from "@/utils/getPostPaths";
+import config from "@/config";
+
+type TranslationPost = Pick<
+  CollectionEntry<"posts">,
+  "id" | "filePath" | "data"
+>;
+
+type Props = {
+  currentLanguage?: "en" | "es";
+  translations: TranslationPost[];
+};
+
+const { currentLanguage = config.site.lang, translations } = Astro.props;
+const locale = Astro.currentLocale ?? config.site.lang;
+
+const languageNames = {
+  en: "English",
+  es: "Español",
+};
+---
+
+{
+  translations.length > 0 && (
+    <nav class="flex items-center gap-2 text-sm" aria-label="Translations">
+      <span class="text-muted-foreground">Read in</span>
+      <ul class="flex items-center gap-2">
+        {translations.map(translation => {
+          const language =
+            translation.data.language === "es" ? "es" : "en";
+          return (
+            <li>
+              <a
+                href={getPostUrl(translation.id, translation.filePath, locale)}
+                class="decoration-dashed underline-offset-4 hover:text-accent"
+                aria-current={language === currentLanguage ? "page" : undefined}
+              >
+                {languageNames[language]}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  )
+}
