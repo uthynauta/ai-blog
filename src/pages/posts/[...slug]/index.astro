@@ -91,6 +91,20 @@ const translations = translationKey
         !entry.data.draft
     )
   : [];
+const postLanguage = language ?? config.site.lang;
+const canonical = canonicalURL ?? new URL(Astro.url.pathname, Astro.site).href;
+const alternateLanguages = [post, ...translations]
+  .map(entry => {
+    const entryLanguage = entry.data.language ?? config.site.lang;
+    return {
+      lang: entryLanguage,
+      href: new URL(
+        getPostUrl(entry.id, entry.filePath, locale),
+        Astro.site
+      ).href,
+    };
+  })
+  .sort((a, b) => a.lang.localeCompare(b.lang));
 
 let ogImageUrl: string | undefined;
 
@@ -117,9 +131,11 @@ const ogImage = ogImageUrl
   title={`${title} | ${config.site.title}`}
   description={description}
   ogImage={ogImage}
-  canonicalURL={canonicalURL}
+  canonicalURL={canonical}
   pubDatetime={pubDatetime}
   modDatetime={modDatetime}
+  language={postLanguage}
+  {alternateLanguages}
 >
   <Header />
 

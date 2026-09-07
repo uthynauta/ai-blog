@@ -1,6 +1,6 @@
 ---
 author: Uthynauta
-pubDatetime: 2026-09-05T18:45:00-06:00
+pubDatetime: 2026-09-06T18:45:00-06:00
 title: La métrica del token está muerta
 slug: es/la-metrica-del-token-esta-muerta
 featured: true
@@ -33,7 +33,7 @@ Empezamos a ver problemas en la forma de contabilizar el esfuerzo computacional 
 
 Pronto se volvió evidente algo: la cantidad de tokens generados durante un proceso de razonamiento no refleja necesariamente la calidad del proceso que nos lleva de los _input tokens_ a los [_output tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count).
 
-De hecho, entre quienes utilizamos habitualmente modelos _frontier_ se ha vuelto casi una regla práctica evitar niveles máximos de esfuerzo de razonamiento, q no ser que la tarea realmente los justifique.
+De hecho, entre quienes utilizamos habitualmente modelos _frontier_ se ha vuelto casi una regla práctica evitar niveles máximos de esfuerzo de razonamiento, a no ser que la tarea realmente los justifique.
 
 Más razonamiento explícito, o [_reasoning tokens_](https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count), no implica necesariamente una mejor respuesta.
 
@@ -149,7 +149,7 @@ El reporte añadía algo todavía más interesante: OpenAI habría limitado deli
 
 [Otros medios](https://www.theverge.com/ai-artificial-intelligence/988334/openai-astra-ai-monitoring-safety) retomaron posteriormente el reporte y la discusión sobre las implicaciones de _recurrent depth_ para la observabilidad del razonamiento.
 
-¿Significa esto que sabemos que Astra utiliza extensivamente _recurrent depth_? OpenAI no lo ha sido desmentido ni admitido. Hasta donde sabemos públicamente, OpenAI no ha publicado una descripción arquitectónica suficientemente detallada que permita comprobar de manera independiente esta sospecha. Pero resulta interesante para nuestro análisis.
+¿Significa esto que sabemos que Astra utiliza extensivamente _recurrent depth_? OpenAI no lo ha desmentido ni admitido. Hasta donde sabemos públicamente, OpenAI no ha publicado una descripción arquitectónica suficientemente detallada que permita comprobar de manera independiente esta sospecha. Pero resulta interesante para nuestro análisis.
 
 Retomemos.
 
@@ -175,7 +175,7 @@ Aquí es donde esta discusión empieza a tener consecuencias prácticas.
 
 Nos sorprendemos porque un modelo logra resolver determinado benchmark utilizando cierta cantidad de _output tokens_. Y OpenAI fue muy específico en reportar [_output tokens_](https://openai.com/index/path-to-astra/)
 .
-Los benchmarks nos ayudan a comparar modelos bajo condiciones conocidas. DComparamos modelos. Comparamos costos. Comparamos cantidades de tokens.
+Los benchmarks nos ayudan a comparar modelos bajo condiciones conocidas. Comparamos modelos. Comparamos costos. Comparamos cantidades de tokens.
 
 Incluso construimos curvas que intentan representar cuánto "razonamiento" necesitamos para alcanzar determinado nivel de desempeño. Y solemos asociar también la cantidad de tokens utilizados con la capacidad del modelo, y para muchas personas aún más interesante, nos da una estimación de la factura que pagaremos por ejecutar una tarea.
 

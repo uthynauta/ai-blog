@@ -1,6 +1,6 @@
 ---
 author: Uthynauta
-pubDatetime: 2026-09-05T18:45:00-06:00
+pubDatetime: 2026-09-06T18:45:00-06:00
 title: The Token Metric Is Dead
 slug: the-token-metric-is-dead
 featured: true

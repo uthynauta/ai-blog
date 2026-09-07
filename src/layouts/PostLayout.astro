@@ -9,18 +9,37 @@ type Props = {
   canonicalURL?: string;
   pubDatetime?: Date;
   modDatetime?: Date | null;
+  language?: string;
+  alternateLanguages?: { lang: string; href: string }[];
 };
 
 const { site } = config;
 
-const { title, description, ogImage, canonicalURL, pubDatetime, modDatetime } =
-  Astro.props;
+const {
+  title,
+  description,
+  ogImage,
+  canonicalURL,
+  pubDatetime,
+  modDatetime,
+  language,
+  alternateLanguages,
+} = Astro.props;
 
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   headline: title ?? site.title,
+  description,
   image: ogImage,
+  ...(canonicalURL && {
+    url: canonicalURL,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalURL,
+    },
+  }),
+  ...(language && { inLanguage: language }),
   ...(pubDatetime && { datePublished: pubDatetime.toISOString() }),
   ...(modDatetime && { dateModified: modDatetime.toISOString() }),
   author: [
@@ -33,11 +52,16 @@ const structuredData = {
 };
 ---
 
-<Layout {title} {description} {ogImage} {canonicalURL}>
+<Layout
+  {title}
+  {description}
+  {ogImage}
+  {canonicalURL}
+  {language}
+  {alternateLanguages}
+  ogType="article"
+>
   <Fragment slot="head">
-    <!-- Override og:type for article pages -->
-    <meta property="og:type" content="article" />
-
     {
       pubDatetime && (
         <meta
