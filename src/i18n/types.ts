@@ -3,6 +3,7 @@ export interface UIStrings {
     home: string;
     posts: string;
     tags: string;
+    cv: string;
     about: string;
     archives: string;
     search: string;
