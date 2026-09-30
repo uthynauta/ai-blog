@@ -21,6 +21,14 @@ code, command arguments, CI variables, or logs. Add the secret values directly
 in the dashboard's secret fields; Cloudflare hides them after entry. Keep the
 dashboard's final **Deploy** action for the approved release (see below).
 
+`wrangler.jsonc` sets `keep_vars: true`. Cloudflare documents that Wrangler
+otherwise removes dashboard-set plaintext variables during `wrangler deploy`,
+while `keep_vars` preserves them; secrets are preserved independently. This
+keeps `CV_AGENT_URL` and `TURNSTILE_SITE_KEY` editable in Cloudflare and
+preserved by later code deployments. See the official [Wrangler deploy
+options](https://developers.cloudflare.com/workers/wrangler/commands/workers/)
+and [`keep_vars` configuration](https://developers.cloudflare.com/workers/wrangler/configuration/).
+
 Do not use `wrangler secret put` as a pre-release staging command: Cloudflare
 [documents](https://developers.cloudflare.com/workers/configuration/secrets/)
 that it creates a new Worker version and deploys it immediately.
