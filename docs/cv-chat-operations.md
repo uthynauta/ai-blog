@@ -15,16 +15,18 @@ The Worker reads two public runtime variables and two secrets:
 | `CV_AGENT_API_KEY` | Secret | Bearer key for the Render agent |
 | `TURNSTILE_SECRET_KEY` | Secret | Secret key for the Managed Turnstile widget |
 
-Set the variables under the `ai-blog` Worker in Cloudflare's dashboard, or with
-Wrangler for the appropriate deployed environment. Never put secret values in
-`wrangler.jsonc`, source control, browser code, command arguments, CI variables,
-or logs. Set each secret interactively so its value is entered at the local
-prompt and is not echoed:
+Set the variables and secrets under the `ai-blog` Worker in Cloudflare's
+dashboard. Never put secret values in `wrangler.jsonc`, source control, browser
+code, command arguments, CI variables, or logs. Add the secret values directly
+in the dashboard's secret fields; Cloudflare hides them after entry. Keep the
+dashboard's final **Deploy** action for the approved release (see below).
 
-```sh
-corepack pnpm@11.3.0 exec wrangler secret put CV_AGENT_API_KEY
-corepack pnpm@11.3.0 exec wrangler secret put TURNSTILE_SECRET_KEY
-```
+Do not use `wrangler secret put` as a pre-release staging command: Cloudflare
+[documents](https://developers.cloudflare.com/workers/configuration/secrets/)
+that it creates a new Worker version and deploys it immediately.
+Likewise, adding dashboard variables/secrets is not a non-deploying staging
+step once you click **Deploy**. Treat that click as a production publish and
+perform it only as part of the approved release.
 
 Wrangler authentication is required for configuration and deployment. Run
 `corepack pnpm@11.3.0 exec wrangler login` in a trusted interactive terminal,
@@ -40,14 +42,16 @@ coarse safeguard and is not a hard spending cap.
 ### Turnstile widget release step
 
 Before deployment, a release operator creates a **Managed** widget in the
-Cloudflare Turnstile dashboard. Add the production hostname `uthynauta.dev`
-and any intended preview hostname. Configure the widget with
-`appearance: interaction-only`; the page executes verification on submission,
-and the widget can appear if Turnstile requires human interaction. Copy the
-public sitekey to the `TURNSTILE_SITE_KEY` Worker variable and store the
-widget's secret key as `TURNSTILE_SECRET_KEY`. Verify the hostname list and
-widget mode before proceeding. Keep both key values out of this document and
-the repository.
+Cloudflare Turnstile dashboard and adds the production hostname
+`uthynauta.dev` and any intended preview hostname. The dashboard sets the
+widget mode and allowed hostnames; `appearance` is configured by the page's
+[`turnstile.render` options](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/).
+Verify that `src/scripts/cv-chat.ts` sets
+`appearance: "interaction-only"` and `execution: "execute"`; this lets a
+challenge appear if Turnstile requires human interaction. Copy the public
+sitekey to the `TURNSTILE_SITE_KEY` Worker variable and store the widget's
+secret key as `TURNSTILE_SECRET_KEY`. Keep both key values out of this document
+and the repository.
 
 ## Local checks
 
@@ -74,9 +78,17 @@ reuse or copy production secrets into it. Do not enable a production bypass.
 
 ## Deploy and rollback
 
-Once review is complete and a release is approved, configure the two variables,
-create and configure the widget, set both secrets, then build and deploy from
-the reviewed branch:
+Once review is complete and a release is approved, create the widget and
+hostname allowlist, build and deploy the reviewed branch, then enter the two
+variables and two secrets in the Worker's dashboard. Click **Deploy** only as
+the deliberate release action that activates those settings. Cloudflare
+documents that this dashboard action publishes the variable/secret changes
+immediately. If the reviewed code and configuration must be activated in a
+single step, make the final reviewed `wrangler deploy` the release action and
+use a tested, approved deployment workflow for supplying its secrets; do not
+run `wrangler secret put` beforehand because that command publishes immediately.
+
+Build and deploy the reviewed branch with:
 
 ```sh
 corepack pnpm@11.3.0 run build
