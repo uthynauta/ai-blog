@@ -86,28 +86,31 @@ reuse or copy production secrets into it. Do not enable a production bypass.
 
 ## Deploy and rollback
 
-Once review is complete and a release is approved, create the widget and
-hostname allowlist, build and deploy the reviewed branch, then enter the two
-variables and two secrets in the Worker's dashboard. Click **Deploy** only as
-the deliberate release action that activates those settings. Cloudflare
-documents that this dashboard action publishes the variable/secret changes
-immediately. If the reviewed code and configuration must be activated in a
-single step, make the final reviewed `wrangler deploy` the release action and
-use a tested, approved deployment workflow for supplying its secrets; do not
-run `wrangler secret put` beforehand because that command publishes immediately.
+After review and explicit release approval, first create the Managed Turnstile
+widget and hostname allowlist. In the dashboard for the existing `ai-blog`
+Worker, add both ordinary variables (`CV_AGENT_URL` and `TURNSTILE_SITE_KEY`)
+and both secrets (`CV_AGENT_API_KEY` and `TURNSTILE_SECRET_KEY`). Confirm the
+Worker/account target and all four binding names and types, then deliberately
+click **Deploy** to activate the configuration on the currently deployed code.
+This dashboard action is itself a production change and publishes immediately;
+do it only as part of the approved release. No production configuration or
+deployment is performed during this task.
 
-Build and deploy the reviewed branch with:
+After that configuration deployment succeeds, build and deploy the reviewed
+branch's new code:
 
 ```sh
 corepack pnpm@11.3.0 run build
 corepack pnpm@11.3.0 exec wrangler deploy
 ```
 
-The `deploy` package script also builds before calling `wrangler deploy`. Keep a
-record of the successful deployment version ID from Wrangler/Cloudflare so it
-can be selected for rollback. To roll back to a known-good version, first
-inspect available versions, then use the exact ID from the trusted deployment
-record:
+The `deploy` package script also builds before calling `wrangler deploy`.
+`keep_vars: true` in `wrangler.jsonc` preserves the two dashboard-managed plain
+variables during this code deployment; Cloudflare preserves secrets
+independently. Keep a record of the successful deployment version ID from
+Wrangler/Cloudflare so it can be selected for rollback. To roll back to a
+known-good version, first inspect available versions, then use the exact ID
+from the trusted deployment record:
 
 ```sh
 corepack pnpm@11.3.0 exec wrangler versions list
