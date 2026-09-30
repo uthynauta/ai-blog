@@ -11,7 +11,9 @@ type TurnstileApi = {
     container: HTMLElement,
     options: {
       sitekey: string;
-      size: "invisible";
+      size: "normal" | "flexible" | "compact";
+      appearance: "always" | "execute" | "interaction-only";
+      execution: "render" | "execute";
       callback: (token: string) => void;
       "error-callback"?: () => void;
       "expired-callback"?: () => void;
@@ -104,7 +106,9 @@ export function initCvChat(root: HTMLElement): void {
       if (!view.turnstile) throw new Error("Turnstile unavailable");
       widgetId = view.turnstile.render(turnstileContainer, {
         sitekey: config.siteKey,
-        size: "invisible",
+        size: "normal",
+        appearance: "interaction-only",
+        execution: "execute",
         callback: token => tokenResolver?.(token),
         "error-callback": () => tokenRejecter?.(),
         "expired-callback": () => tokenRejecter?.(),
