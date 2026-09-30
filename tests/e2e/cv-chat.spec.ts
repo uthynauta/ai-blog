@@ -139,6 +139,18 @@ test("CV page is discoverable, responsive, and available in both themes", async 
     page.getByRole("navigation").getByRole("link", { name: "CV" })
   ).toBeVisible();
   await expect(page.locator("[data-cv-chat]")).toBeVisible();
+  await expect(page.locator("[data-cv-chat] [data-cv-form]")).toBeVisible();
+  await expect(page.locator("[data-cv-disclosure]")).toContainText(
+    "AI-generated"
+  );
+  await expect(page.locator('a[href*="linkedin.com"]').first()).toBeAttached();
+  await expect(page.locator("[data-cv-turnstile]")).not.toHaveClass(
+    /\bhidden\b/
+  );
+  await expect(page.locator("[data-cv-turnstile]")).not.toHaveAttribute(
+    "aria-hidden",
+    "true"
+  );
   await page.locator("#theme-btn").click();
   await expect(page.locator("html")).toHaveClass(/dark/);
   await expect(page.locator("[data-cv-input]")).toBeVisible();
