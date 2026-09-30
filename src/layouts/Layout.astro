@@ -70,7 +70,10 @@ const rssHref = new URL("rss.xml", Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={socialImageURL} />
-    <meta property="og:locale" content={language === "es" ? "es_ES" : "en_US"} />
+    <meta
+      property="og:locale"
+      content={language === "es" ? "es_ES" : "en_US"}
+    />
 
     <!-- Twitter / X -->
     <meta property="twitter:card" content="summary_large_image" />

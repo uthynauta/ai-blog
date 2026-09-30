@@ -13,6 +13,7 @@ tags:
   - ai-safety
 description: "La cadena de razonamiento no basta para verificar la alineación de un sistema de IA. Una propuesta de ingeniería que combina representaciones, evaluación, autoridad humana y contención."
 ---
+
 # El tigre y la jaula
 
 ## TL;DR
@@ -21,7 +22,7 @@ La alineación de la IA no puede depender únicamente de las instrucciones del m
 
 ## Por qué la alineación debe ir más allá del modelo
 
-En [*The Token Metric Is Dead*](https://uthynauta.dev/posts/the-token-metric-is-dead/) planteé un problema de medición: contar tokens sigue siendo útil para describir entradas, salidas y facturación, pero ya no basta, por sí solo, para estimar cuánto cómputo requirió una tarea. Los modelos pueden emplear recursos y procesos internos cuya relación con los tokens que observamos no es directa.
+En [_The Token Metric Is Dead_](https://uthynauta.dev/posts/the-token-metric-is-dead/) planteé un problema de medición: contar tokens sigue siendo útil para describir entradas, salidas y facturación, pero ya no basta, por sí solo, para estimar cuánto cómputo requirió una tarea. Los modelos pueden emplear recursos y procesos internos cuya relación con los tokens que observamos no es directa.
 
 Ahora quiero explorar una consecuencia distinta de esa misma separación: **si una cadena de tokens no describe necesariamente todo el procesamiento de un modelo, ¿por qué esperaríamos que bastara para comprobar su alineación?**
 
@@ -31,21 +32,22 @@ Mi tesis es que **la alineación debe convertirse en una propiedad verificable d
 
 ## 1. La observabilidad no es el razonamiento
 
-La [cadena de razonamiento (*chain of thought*, CoT)](https://arxiv.org/abs/2201.11903) permitió que los modelos expresaran pasos intermedios en lenguaje y mejoraran su desempeño en determinadas tareas de razonamiento. Además de su utilidad para resolver problemas, esa cadena abrió una posibilidad atractiva: observar señales de lo que el modelo estaba haciendo antes de producir su respuesta.
+La [cadena de razonamiento (_chain of thought_, CoT)](https://arxiv.org/abs/2201.11903) permitió que los modelos expresaran pasos intermedios en lenguaje y mejoraran su desempeño en determinadas tareas de razonamiento. Además de su utilidad para resolver problemas, esa cadena abrió una posibilidad atractiva: observar señales de lo que el modelo estaba haciendo antes de producir su respuesta.
 
 Pero observar señales no equivale a disponer de una traza completa de ejecución. Conviene distinguir tres cosas: el procesamiento interno del modelo, la cadena de razonamiento que genera y el resumen o la explicación que recibe el usuario. Pueden estar relacionados sin ser idénticos.
 
-En [*Reasoning models don't always say what they think*](https://www.anthropic.com/research/reasoning-models-dont-say-think), Anthropic estudió si determinados modelos reconocían, en sus cadenas de razonamiento, el uso de pistas que habían influido en sus respuestas. Con frecuencia no lo hacían. El experimento no demuestra que toda cadena sea engañosa ni permite atribuir una intención consciente al modelo; sí muestra que **una explicación en lenguaje puede omitir información causalmente relevante para la respuesta**.
+En [_Reasoning models don't always say what they think_](https://www.anthropic.com/research/reasoning-models-dont-say-think), Anthropic estudió si determinados modelos reconocían, en sus cadenas de razonamiento, el uso de pistas que habían influido en sus respuestas. Con frecuencia no lo hacían. El experimento no demuestra que toda cadena sea engañosa ni permite atribuir una intención consciente al modelo; sí muestra que **una explicación en lenguaje puede omitir información causalmente relevante para la respuesta**.
 
-No conviene confundir esa falta de fidelidad con otros comportamientos. La [adulación o complacencia excesiva hacia el usuario](https://www.anthropic.com/research/towards-understanding-sycophancy-in-language-models) puede surgir de incentivos de entrenamiento que favorecen respuestas agradables frente a respuestas correctas. La [simulación de alineación (*alignment faking*)](https://www.anthropic.com/research/alignment-faking), por su parte, se ha estudiado en escenarios experimentales específicos. Son fenómenos distintos: ninguno se demuestra simplemente porque una explicación omita un paso.
+No conviene confundir esa falta de fidelidad con otros comportamientos. La [adulación o complacencia excesiva hacia el usuario](https://www.anthropic.com/research/towards-understanding-sycophancy-in-language-models) puede surgir de incentivos de entrenamiento que favorecen respuestas agradables frente a respuestas correctas. La [simulación de alineación (_alignment faking_)](https://www.anthropic.com/research/alignment-faking), por su parte, se ha estudiado en escenarios experimentales específicos. Son fenómenos distintos: ninguno se demuestra simplemente porque una explicación omita un paso.
 
-OpenAI ha encontrado otro problema. En [*Detecting misbehavior in frontier reasoning models*](https://openai.com/index/chain-of-thought-monitoring/) reportó que penalizar directamente ciertos contenidos de la cadena de razonamiento podía hacer menos visible una conducta indeseable sin eliminarla. Esto ayuda a entender una decisión de diseño que Jakub Pachocki explica en [*An Alien Mind*](https://openai.com/index/an-alien-mind/): preservar, en la medida de lo posible, el valor del CoT como señal de supervisión evitando optimizarlo directamente para que diga lo que el supervisor quiere leer.
+OpenAI ha encontrado otro problema. En [_Detecting misbehavior in frontier reasoning models_](https://openai.com/index/chain-of-thought-monitoring/) reportó que penalizar directamente ciertos contenidos de la cadena de razonamiento podía hacer menos visible una conducta indeseable sin eliminarla. Esto ayuda a entender una decisión de diseño que Jakub Pachocki explica en [_An Alien Mind_](https://openai.com/index/an-alien-mind/): preservar, en la medida de lo posible, el valor del CoT como señal de supervisión evitando optimizarlo directamente para que diga lo que el supervisor quiere leer.
 
 Pachocki también advierte que la capacidad de depender de esa señal está disminuyendo: los modelos trabajan en entornos más complejos, mezclan razonamiento con comunicación y herramientas, pueden manipular mejor su propio proceso y adquieren capacidades que no requieren necesariamente razonamiento verbalizado. Su propuesta no es abandonar la supervisión del CoT, sino complementarla, entre otras posibilidades, con el **monitoreo de activaciones internas**.
 
 Hay una distinción importante: que el CoT no sea una explicación completa no significa que carezca de utilidad. Su lectura puede revelar señales que no aparecen en las acciones finales. Pero tampoco podemos tratar una cadena de texto plano como un certificado de alineación, por muchoq ue parezca que cumple con lo que esperamos del modelo.
 
 Por eso propongo separar dos preguntas que solemos mezclar:
+
 1. ¿Qué podemos inferir del razonamiento verbalizado? y,
 2. ¿Qué evidencia necesitamos para confiar en el comportamiento del sistema?.
 
@@ -67,13 +69,13 @@ La pregunta de ingeniería es: **¿podemos diseñar pruebas para comprobar que l
 
 ## 3. Alineación como invariante: de la intuición a una prueba
 
-En ingeniería llamamos *invariante* a una propiedad que debe mantenerse bajo condiciones definidas. Si una operación requiere autorización, por ejemplo, ese requisito no debería desaparecer porque el usuario reformule la petición, cambie de idioma o entregue la misma instrucción mediante una imagen en vez de texto.
+En ingeniería llamamos _invariante_ a una propiedad que debe mantenerse bajo condiciones definidas. Si una operación requiere autorización, por ejemplo, ese requisito no debería desaparecer porque el usuario reformule la petición, cambie de idioma o entregue la misma instrucción mediante una imagen en vez de texto.
 
 La propuesta se parece a las [pruebas metamórficas de invariancia semántica](https://doi.org/10.1109/ACCESS.2025.3646270): en vez de verificar una única entrada y una única salida, transformamos una entrada de manera controlada y comprobamos qué propiedades deberían mantenerse. Pero aquí me interesa extender esa idea desde la consistencia de las respuestas hacia el **comportamiento autorizado de un sistema que puede actuar**.
 
 Imaginemos un agente con acceso a una base de datos de clientes. Una persona sin permisos le pide información privada; después repite la petición mediante una paráfrasis, en otro idioma y a través de una imagen con texto o mediante audio. Las entradas son distintas, pero la propiedad que esperamos conservar es la misma: el agente no debe entregar esos datos ni invocar una herramienta que permita extraerlos.
 
-Un ejemplo público —no una demostración académica— es el trabajo de [Pliny the Liberator en X](https://x.com/elder_plinius), quien publica intentos de *jailbreak* o evasión de salvaguardas. En [uno de sus ejemplos con GPT-5.2](https://x.com/elder_plinius/status/1999253071189189114), presenta una reformulación adversarial de las instrucciones y resultados que atribuye al modelo. Su publicación permite al lector examinar una falla alegada ante una formulación concreta; no demuestra que el ataque funcione en todas las versiones ni que conozcamos el mecanismo interno que produjo la respuesta. Tampoco toda paráfrasis es un ataque: aquí se intenta cambiar deliberadamente la interpretación de las restricciones.
+Un ejemplo público —no una demostración académica— es el trabajo de [Pliny the Liberator en X](https://x.com/elder_plinius), quien publica intentos de _jailbreak_ o evasión de salvaguardas. En [uno de sus ejemplos con GPT-5.2](https://x.com/elder_plinius/status/1999253071189189114), presenta una reformulación adversarial de las instrucciones y resultados que atribuye al modelo. Su publicación permite al lector examinar una falla alegada ante una formulación concreta; no demuestra que el ataque funcione en todas las versiones ni que conozcamos el mecanismo interno que produjo la respuesta. Tampoco toda paráfrasis es un ataque: aquí se intenta cambiar deliberadamente la interpretación de las restricciones.
 
 Precisamente por eso me parece ilustrativo: **si el límite desaparece cuando cambia el envoltorio de una solicitud, aún no podemos considerarlo una propiedad robusta del comportamiento**. Y si ese límite debe proteger datos o impedir acciones, necesitamos comprobarlo también fuera de la respuesta textual.
 
@@ -101,7 +103,7 @@ Hay otra forma de observar comportamientos aprendidos que no necesariamente tien
 
 El entrenamiento y el entorno pueden favorecer esas conductas. [OpenAI explicó que codex-1 se entrenó mediante aprendizaje por refuerzo en tareas reales de programación y diversos entornos](https://openai.com/index/introducing-codex/), con objetivos que incluían seguir instrucciones, producir cambios adecuados para revisión humana y ejecutar pruebas hasta obtener resultados satisfactorios. Por su parte, [Anthropic ha estudiado cómo incorporar herramientas a los entornos de entrenamiento puede modificar la conducta de agentes en escenarios de alineación](https://alignment.anthropic.com/2026/teaching-claude-why/).
 
-También interviene la **orquestación o *harness***: instrucciones, herramientas, gestión del contexto, permisos y mecanismos de validación que rodean al modelo. En su trabajo sobre [ingeniería del entorno de Codex](https://openai.com/index/harness-engineering/), OpenAI explica cómo estructurar el repositorio, los controles y la retroalimentación permite al agente completar tareas que antes fallaban por un entorno insuficientemente especificado. Cambiar ese entorno puede cambiar el comportamiento observado sin que necesariamente hayamos cambiado los pesos del modelo. La adaptación aprendida durante el entrenamiento y la conducta inducida por el entorno son mecanismos distintos, aunque interactúan.
+También interviene la **orquestación o _harness_**: instrucciones, herramientas, gestión del contexto, permisos y mecanismos de validación que rodean al modelo. En su trabajo sobre [ingeniería del entorno de Codex](https://openai.com/index/harness-engineering/), OpenAI explica cómo estructurar el repositorio, los controles y la retroalimentación permite al agente completar tareas que antes fallaban por un entorno insuficientemente especificado. Cambiar ese entorno puede cambiar el comportamiento observado sin que necesariamente hayamos cambiado los pesos del modelo. La adaptación aprendida durante el entrenamiento y la conducta inducida por el entorno son mecanismos distintos, aunque interactúan.
 
 Aquí aparece el paralelo que me interesa. Podemos observar que un agente aprende o adopta patrones de actuación útiles para cumplir una tarea —por ejemplo, probar un cambio antes de darlo por terminado— sin que tengamos que leer una declaración textual de cada decisión intermedia. **¿Podemos conseguir que el respeto a un límite de autoridad sea igual de persistente al cambiar la formulación de la tarea o las herramientas disponibles?** De ser así podríamos aprovechar lo aprendido sobre entrenamiento, retroalimentación y diseño del entorno para investigar cómo generalizan también los comportamientos de seguridad. Mientras tanto, resulta menester mantener límites de autorización verificables fuera del modelo.
 

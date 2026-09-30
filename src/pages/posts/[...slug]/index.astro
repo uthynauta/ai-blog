@@ -98,10 +98,8 @@ const alternateLanguages = [post, ...translations]
     const entryLanguage = entry.data.language ?? config.site.lang;
     return {
       lang: entryLanguage,
-      href: new URL(
-        getPostUrl(entry.id, entry.filePath, locale),
-        Astro.site
-      ).href,
+      href: new URL(getPostUrl(entry.id, entry.filePath, locale), Astro.site)
+        .href,
     };
   })
   .sort((a, b) => a.lang.localeCompare(b.lang));
