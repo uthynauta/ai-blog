@@ -41,7 +41,11 @@ async function loadTurnstile(document: Document): Promise<void> {
         "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Turnstile failed to load"));
+      script.onerror = () => {
+        script.remove();
+        turnstileScript = undefined;
+        reject(new Error("Turnstile failed to load"));
+      };
       document.head.append(script);
     });
   }
@@ -83,6 +87,7 @@ export function initCvChat(root: HTMLElement): void {
   let history: ChatMessage[] = [];
   let pending = false;
   let widgetId: string | undefined;
+  let widgetInitialization: Promise<void> | undefined;
   let tokenResolver: ((token: string) => void) | undefined;
   let tokenRejecter: (() => void) | undefined;
 
@@ -122,6 +127,14 @@ export function initCvChat(root: HTMLElement): void {
     }
   };
 
+  const ensureTurnstileWidget = (): Promise<void> => {
+    if (widgetId) return Promise.resolve();
+    widgetInitialization ??= makeTurnstileWidget().finally(() => {
+      widgetInitialization = undefined;
+    });
+    return widgetInitialization;
+  };
+
   const freshToken = (): Promise<string> =>
     new Promise((resolve, reject) => {
       if (!view.turnstile || !widgetId) {
@@ -152,13 +165,8 @@ export function initCvChat(root: HTMLElement): void {
 
   const send = async () => {
     if (!isSubmittable(input.value, pending)) return;
-    if (!widgetId) {
-      setStatus(
-        "The verification service is still loading. Please try again in a moment."
-      );
-      return;
-    }
-    const question = input.value.trim();
+    const submittedDraft = input.value;
+    const question = submittedDraft.trim();
     pending = true;
     submit.disabled = true;
     setStatus("Verifying your question…");
@@ -166,6 +174,8 @@ export function initCvChat(root: HTMLElement): void {
       if (pending) setStatus("Still working on your question…");
     }, 8000);
     try {
+      await ensureTurnstileWidget();
+      if (!widgetId) return;
       const turnstileToken = await freshToken();
       setStatus("Thinking through your question…");
       const nextHistory: ChatMessage[] = [
@@ -211,7 +221,7 @@ export function initCvChat(root: HTMLElement): void {
         assistant.append(sourceList);
       }
       history = [...nextHistory, { role: "assistant", content: answer.text }];
-      input.value = "";
+      if (input.value === submittedDraft) input.value = "";
       setStatus("Answer ready.");
     } catch (error) {
       setStatus(
@@ -246,5 +256,5 @@ export function initCvChat(root: HTMLElement): void {
         input.focus();
       });
     });
-  void makeTurnstileWidget();
+  void ensureTurnstileWidget();
 }

@@ -240,7 +240,9 @@ export async function handleCvChat(
         authorization: `Bearer ${env.CV_AGENT_API_KEY}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ input: payload.messages }),
+      body: JSON.stringify({
+        input: payload.messages.map(({ role, content }) => ({ role, content })),
+      }),
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     if (!upstream.ok) return json({ error: "agent_unavailable" }, 503);

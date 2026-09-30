@@ -13,6 +13,7 @@
     "sync": "astro sync",
     "astro": "astro",
     "test:integration": "vitest run tests/integration",
+    "test": "vitest run tests/unit tests/integration",
     "test:e2e": "playwright test",
     "format:check": "prettier --check .",
     "format": "prettier --write .",

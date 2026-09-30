@@ -48,5 +48,8 @@ jobs:
       - name: "🚀 Build the project"
         run: pnpm run build
 
+      - name: "🧪 Run unit and integration tests"
+        run: pnpm run test
+
       - name: "🧭 Run browser end-to-end tests"
         run: pnpm run test:e2e
