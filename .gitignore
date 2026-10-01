@@ -1,6 +1,7 @@
 # build output
 dist/
 .wrangler/
+.worktrees/
 test-results/
 
 # generated types
