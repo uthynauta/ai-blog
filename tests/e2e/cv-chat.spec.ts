@@ -162,6 +162,21 @@ test("CV page is discoverable, responsive, and available in both themes", async 
   ).toBeVisible();
 });
 
+test("suggested questions ask about Othón and fill the same text into the draft", async ({
+  page,
+}) => {
+  await page.goto("/cv");
+  const input = page.getByLabel("Ask about experience, projects, or research");
+  for (const question of [
+    "What did Othón build at Teradata?",
+    "What computer vision projects has Othón worked on?",
+    "¿Qué ha hecho Othón con agentes de IA?",
+  ]) {
+    await page.getByRole("button", { name: question, exact: true }).click();
+    await expect(input).toHaveValue(question);
+  }
+});
+
 test("Enter submits a bilingual question and displays citations as text", async ({
   page,
 }) => {
