@@ -39,7 +39,22 @@ describe("CV page and chat controller", () => {
       .mockResolvedValueOnce(
         Response.json({
           answer: "Built reliable services.",
-          sources: ["Selected Work"],
+          sources: [
+            {
+              title: "**Selected Work** & <img src=x onerror=alert(1)>",
+              documents: [
+                {
+                  filename: "portfolio <final>.pdf",
+                  url: "https://cv-agent.example/v1/documents/doc_123/original",
+                },
+                {
+                  filename: "unsafe.pdf",
+                  url: "javascript:alert(1)",
+                },
+              ],
+            },
+            { title: "Education \\textit{Selected Work}", documents: [] },
+          ],
         })
       );
     vi.stubGlobal("fetch", fetchMock);
@@ -77,9 +92,21 @@ describe("CV page and chat controller", () => {
     expect(root.querySelector("[data-cv-transcript]")?.textContent).toContain(
       "Built reliable services."
     );
-    expect(root.querySelector("[data-cv-transcript]")?.textContent).toContain(
-      "Selected Work"
+    const transcript = root.querySelector("[data-cv-transcript]")!;
+    expect(transcript.textContent).toContain(
+      "**Selected Work** & <img src=x onerror=alert(1)>"
     );
+    expect(transcript.querySelector("img")).toBeNull();
+    expect(transcript.querySelectorAll("a")).toHaveLength(1);
+    const pdfLink = transcript.querySelector("a")!;
+    expect(pdfLink.textContent).toBe("portfolio <final>.pdf");
+    expect(pdfLink.getAttribute("href")).toBe(
+      "https://cv-agent.example/v1/documents/doc_123/original"
+    );
+    expect(pdfLink.getAttribute("target")).toBe("_blank");
+    expect(pdfLink.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(transcript.textContent).toContain("Education \\textit{Selected Work}");
+    expect(transcript.textContent).not.toMatch(/,\s*(?:$|Education)/);
     expect(fetchMock).toHaveBeenCalledTimes(3);
     vi.unstubAllGlobals();
     window.happyDOM.abort();

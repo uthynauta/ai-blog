@@ -2,6 +2,7 @@ import {
   formatAnswer,
   getChatErrorMessage,
   isSubmittable,
+  parseSources,
   trimHistory,
   type ChatMessage,
 } from "./cv-chat-state";
@@ -200,14 +201,11 @@ export function initCvChat(root: HTMLElement): void {
           typeof payload.error === "string" ? payload.error : "network"
         );
       }
-      if (
-        typeof payload.answer !== "string" ||
-        !Array.isArray(payload.sources) ||
-        !payload.sources.every(source => typeof source === "string")
-      ) {
+      const sources = parseSources(payload.sources);
+      if (typeof payload.answer !== "string" || sources === undefined) {
         throw new Error("network");
       }
-      const answer = formatAnswer(payload.answer, payload.sources as string[]);
+      const answer = formatAnswer(payload.answer, sources);
       addBubble("user", question);
       const assistant = addBubble("assistant", answer.text);
       if (answer.sources.length) {
@@ -215,7 +213,19 @@ export function initCvChat(root: HTMLElement): void {
         sourceList.className = "cv-source-list";
         for (const source of answer.sources) {
           const item = document.createElement("li");
-          item.textContent = source;
+          const title = document.createElement("span");
+          title.className = "cv-source-title";
+          title.textContent = source.title;
+          item.append(title);
+          for (const sourceDocument of source.documents) {
+            const link = document.createElement("a");
+            link.className = "cv-source-link";
+            link.href = sourceDocument.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = sourceDocument.filename;
+            item.append(link);
+          }
           sourceList.append(item);
         }
         assistant.append(sourceList);

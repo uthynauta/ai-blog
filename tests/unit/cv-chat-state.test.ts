@@ -3,15 +3,92 @@ import {
 	formatAnswer,
 	getChatErrorMessage,
 	isSubmittable,
+	parseSources,
 	trimHistory,
 	type ChatMessage,
 } from "../../src/scripts/cv-chat-state";
 
 describe("CV chat presentation and state", () => {
+  it("keeps a PDF link with a safe dotted document ID", () => {
+    expect(parseSources([{
+      title: "Profile",
+      documents: [{ filename: "CV.pdf", url: "https://cv-agent.example/v1/documents/profile.v2/original" }],
+    }])).toEqual([{
+      title: "Profile",
+      documents: [{ filename: "CV.pdf", url: "https://cv-agent.example/v1/documents/profile.v2/original" }],
+    }]);
+  });
+
+  it.each(["..", ".", "%2e%2e", "../secret", ".hidden", "_hidden"])(
+    "rejects an unsafe document ID: %s", documentId => {
+      expect(parseSources([{
+        title: "Profile",
+        documents: [{ filename: "CV.pdf", url: `https://cv-agent.example/v1/documents/${documentId}/original` }],
+      }])).toEqual([{ title: "Profile", documents: [] }]);
+    }
+  );
+
 	it("keeps Worker-extracted source titles beside plain answer text", () => {
 		expect(
-			formatAnswer("Built an evaluation workflow.", ["Selected Work"])
-		).toEqual({ text: "Built an evaluation workflow.", sources: ["Selected Work"] });
+			formatAnswer("Built an evaluation workflow.", [
+				{ title: "Selected Work", documents: [] },
+			])
+		).toEqual({
+			text: "Built an evaluation workflow.",
+			sources: [{ title: "Selected Work", documents: [] }],
+		});
+	});
+
+	it("keeps PDF document metadata attached to its source title", () => {
+		const sources = [
+			{
+				title: "Selected Work",
+				documents: [
+					{
+						filename: "resume.pdf",
+						url: "https://cv-agent.example/v1/documents/doc_123/original",
+					},
+				],
+			},
+		];
+
+		expect(formatAnswer("Built an evaluation workflow.", sources)).toEqual({
+			text: "Built an evaluation workflow.",
+			sources,
+		});
+	});
+
+	it("validates structured sources and keeps only verified PDF documents", () => {
+		expect(
+			parseSources([
+				{
+					title: "\\textit{Selected Work}",
+					documents: [
+						{
+							filename: "resume.pdf",
+							url: "https://cv-agent.example/v1/documents/doc_123/original",
+						},
+						{
+							filename: "notes.txt",
+							url: "https://cv-agent.example/v1/documents/doc_456/original",
+						},
+						{ filename: "unsafe.pdf", url: "javascript:alert(1)" },
+					],
+				},
+				{ title: "**Education**", documents: [] },
+			])
+		).toEqual([
+			{
+				title: "\\textit{Selected Work}",
+				documents: [
+					{
+						filename: "resume.pdf",
+						url: "https://cv-agent.example/v1/documents/doc_123/original",
+					},
+				],
+			},
+			{ title: "**Education**", documents: [] },
+		]);
 	});
 
 	it("leaves malformed citation-like text untouched", () => {

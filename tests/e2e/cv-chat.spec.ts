@@ -122,7 +122,22 @@ test.beforeEach(async ({ page }) => {
     route.fulfill({ json: { siteKey: "public-test-site-key" } })
   );
   await page.route("**/api/cv-chat", async route =>
-    route.fulfill({ json: { answer, sources: ["Selected Work"] } })
+    route.fulfill({
+      json: {
+        answer,
+        sources: [
+          {
+            title: "Selected Work",
+            documents: [
+              {
+                filename: "resume.pdf",
+                url: "https://cv-agent.example/v1/documents/doc_123/original",
+              },
+            ],
+          },
+        ],
+      },
+    })
   );
 });
 
@@ -177,7 +192,7 @@ test("suggested questions ask about Othón and fill the same text into the draft
   }
 });
 
-test("Enter submits a bilingual question and displays citations as text", async ({
+test("Enter submits a bilingual question and displays a clickable PDF citation", async ({
   page,
 }) => {
   await page.goto("/cv");
@@ -190,8 +205,54 @@ test("Enter submits a bilingual question and displays citations as text", async 
   await expect(
     page.locator(".cv-message-assistant .cv-message-body")
   ).toContainText("Built a dependable platform.");
-  await expect(page.getByRole("list").getByText("Selected Work")).toBeVisible();
-  await expect(page.locator(".cv-message-assistant a")).toHaveCount(0);
+  const link = page
+    .locator(".cv-message-assistant")
+    .getByRole("link", { name: "resume.pdf" });
+  await expect(link).toHaveAttribute(
+    "href",
+    "https://cv-agent.example/v1/documents/doc_123/original"
+  );
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+});
+
+test("source titles stay literal and title-only sources have no orphan separators", async ({
+  page,
+}) => {
+  await page.route("**/api/cv-chat", route =>
+    route.fulfill({
+      json: {
+        answer,
+        sources: [
+          {
+            title: "**Research & <img src=x>**",
+            documents: [
+              {
+                filename: "research.pdf",
+                url: "https://cv-agent.example/v1/documents/doc_456/original",
+              },
+            ],
+          },
+          { title: "\\textit{Selected Work}", documents: [] },
+        ],
+      },
+    })
+  );
+  await page.goto("/cv");
+  await page
+    .getByLabel("Ask about experience, projects, or research")
+    .fill("Where can I read more?");
+  await page.getByRole("button", { name: "Send" }).click();
+
+  const assistant = page.locator(".cv-message-assistant");
+  await expect(assistant.getByRole("link", { name: "research.pdf" })).toHaveAttribute(
+    "href",
+    "https://cv-agent.example/v1/documents/doc_456/original"
+  );
+  await expect(assistant).toContainText("**Research & <img src=x>**");
+  await expect(assistant).toContainText("\\textit{Selected Work}");
+  await expect(assistant.locator("img")).toHaveCount(0);
+  await expect(assistant.locator(".cv-source-list")).not.toContainText(/,\s*(?:$|\\textit)/);
 });
 
 test("assistant response containing HTML is rendered literally", async ({

@@ -3,16 +3,76 @@ export type ChatMessage = {
   content: string;
 };
 
+export type CvSourceDocument = {
+  filename: string;
+  url: string;
+};
+
+export type CvSource = {
+  title: string;
+  documents: CvSourceDocument[];
+};
+
 export type FormattedAnswer = {
   text: string;
-  sources: string[];
+  sources: CvSource[];
 };
 
 export function formatAnswer(
   answer: string,
-  sources: string[]
+  sources: CvSource[]
 ): FormattedAnswer {
-  return { text: answer, sources: [...sources] };
+  return {
+    text: answer,
+    sources: sources.map(source => ({
+      title: source.title,
+      documents: source.documents.map(document => ({ ...document })),
+    })),
+  };
+}
+
+function isVerifiedPdfDocument(value: unknown): value is CvSourceDocument {
+  if (!value || typeof value !== "object") return false;
+  const { filename, url } = value as Record<string, unknown>;
+  if (
+    typeof filename !== "string" ||
+    !filename.trim().toLowerCase().endsWith(".pdf") ||
+    typeof url !== "string"
+  ) {
+    return false;
+  }
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      !parsed.username &&
+      !parsed.password &&
+      /^\/v1\/documents\/[A-Za-z0-9][A-Za-z0-9._-]*\/original$/.test(
+        parsed.pathname
+      ) &&
+      !parsed.search &&
+      !parsed.hash
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function parseSources(value: unknown): CvSource[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const sources: CvSource[] = [];
+  for (const candidate of value) {
+    if (!candidate || typeof candidate !== "object") return undefined;
+    const { title, documents } = candidate as Record<string, unknown>;
+    if (typeof title !== "string" || !Array.isArray(documents)) {
+      return undefined;
+    }
+    sources.push({
+      title,
+      documents: documents.filter(isVerifiedPdfDocument),
+    });
+  }
+  return sources;
 }
 
 export function isSubmittable(draft: string, pending: boolean): boolean {
