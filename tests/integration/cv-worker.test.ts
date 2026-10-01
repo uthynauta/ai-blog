@@ -54,11 +54,12 @@ function configureFetch(
 }
 
 async function successfulFetch(
-  answer = "Built data systems [[Selected Work]]"
+  answer = "Built data systems [[Selected Work]]",
+  responseFields: Record<string, unknown> = {}
 ) {
   const result = configureFetch({
     turnstile: Response.json({ success: true }),
-    render: Response.json({ output_text: answer }),
+    render: Response.json({ ...responseFields, output_text: answer }),
   });
   return result;
 }
@@ -134,8 +135,26 @@ describe("CV chat Worker", () => {
   beforeEach(() => vi.stubGlobal("AbortSignal", AbortSignal));
   afterEach(() => vi.unstubAllGlobals());
 
-  it("proxies a validated transcript and extracts source titles", async () => {
-    const { calls } = await successfulFetch();
+  it("proxies a validated transcript and returns safe documents for cited titles", async () => {
+    const { calls } = await successfulFetch(
+      "Built data systems\nSources: [[Selected Work]], [[Education]]",
+      {
+        source_documents: [
+          {
+            title: "Selected Work",
+            documents: [
+              { filename: "resume.pdf", path: "/v1/documents/doc_123/original" },
+            ],
+          },
+          {
+            title: "Education",
+            documents: [
+              { filename: "degree.pdf", path: "/v1/documents/doc-456/original" },
+            ],
+          },
+        ],
+      }
+    );
     const response = await worker.fetch(
       chatRequest({ messages, turnstileToken: token }),
       makeEnv()
@@ -145,7 +164,26 @@ describe("CV chat Worker", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toEqual({
       answer: "Built data systems",
-      sources: ["Selected Work"],
+      sources: [
+        {
+          title: "Selected Work",
+          documents: [
+            {
+              filename: "resume.pdf",
+              url: "https://cv-agent.example/v1/documents/doc_123/original",
+            },
+          ],
+        },
+        {
+          title: "Education",
+          documents: [
+            {
+              filename: "degree.pdf",
+              url: "https://cv-agent.example/v1/documents/doc-456/original",
+            },
+          ],
+        },
+      ],
     });
     const renderCall = calls.find(({ input }) =>
       String(input).includes("/v1/responses")
@@ -161,6 +199,70 @@ describe("CV chat Worker", () => {
     ]);
     expect(JSON.parse(String(renderCall.init?.body))).toEqual({
       input: messages,
+    });
+  });
+
+  it("keeps cited titles when document metadata is absent or does not match", async () => {
+    const { calls } = await successfulFetch(
+      "Answer [[Known]] and [[Unknown]]",
+      {
+        source_documents: [
+          {
+            title: "Known",
+            documents: [{ filename: "known.pdf", path: "/v1/documents/id1/original" }],
+          },
+        ],
+      }
+    );
+    const response = await worker.fetch(
+      chatRequest({ messages, turnstileToken: token }),
+      makeEnv()
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      answer: "Answer and",
+      sources: [
+        { title: "Known", documents: [{ filename: "known.pdf", url: "https://cv-agent.example/v1/documents/id1/original" }] },
+        { title: "Unknown", documents: [] },
+      ],
+    });
+    expect(calls.some(({ input }) => String(input).includes("/v1/responses"))).toBe(true);
+  });
+
+  it.each([
+    ["relative path outside the document route", "/other/id/original"],
+    ["traversal path", "/v1/documents/../secret/original"],
+    ["encoded traversal path", "/v1/documents/%2e%2e/original"],
+    ["absolute URL", "https://attacker.example/v1/documents/id/original"],
+    ["query string", "/v1/documents/id/original?download=1"],
+  ])("does not create PDF links for a %s", async (_label, path) => {
+    await successfulFetch("Answer [[Selected Work]]", {
+      source_documents: [
+        {
+          title: "Selected Work",
+          documents: [{ filename: "resume.pdf", path }],
+        },
+      ],
+    });
+    const response = await worker.fetch(
+      chatRequest({ messages, turnstileToken: token }),
+      makeEnv()
+    );
+    expect(await response.json()).toEqual({
+      answer: "Answer",
+      sources: [{ title: "Selected Work", documents: [] }],
+    });
+  });
+
+  it("returns title-only sources when document metadata is missing", async () => {
+    await successfulFetch("Answer [[Selected Work]]");
+    const response = await worker.fetch(
+      chatRequest({ messages, turnstileToken: token }),
+      makeEnv()
+    );
+    expect(await response.json()).toEqual({
+      answer: "Answer",
+      sources: [{ title: "Selected Work", documents: [] }],
     });
   });
 

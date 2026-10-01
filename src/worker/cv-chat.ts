@@ -52,6 +52,40 @@ function validAgentUrl(value?: string): string | undefined {
   }
 }
 
+function validDocumentPath(path: unknown): path is string {
+  return (
+    typeof path === "string" &&
+    /^\/v1\/documents\/[A-Za-z0-9_-]+\/original$/.test(path)
+  );
+}
+
+function documentsForTitle(
+  sourceDocuments: unknown,
+  title: string,
+  agentOrigin: string
+): Array<{ filename: string; url: string }> {
+  if (!Array.isArray(sourceDocuments)) return [];
+  const source = sourceDocuments.find(
+    entry =>
+      entry &&
+      typeof entry === "object" &&
+      (entry as { title?: unknown }).title === title
+  );
+  if (!source || typeof source !== "object") return [];
+  const documents = (source as { documents?: unknown }).documents;
+  if (!Array.isArray(documents)) return [];
+  return documents.flatMap(document => {
+    if (!document || typeof document !== "object") return [];
+    const { filename, path } = document as {
+      filename?: unknown;
+      path?: unknown;
+    };
+    if (typeof filename !== "string" || !filename || !validDocumentPath(path))
+      return [];
+    return [{ filename, url: `${agentOrigin}${path}` }];
+  });
+}
+
 function validMessages(value: unknown): value is CvMessage[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > MAX_MESSAGES)
     return false;
@@ -257,7 +291,15 @@ export async function handleCvChat(
     if (typeof answer !== "string" || answer.length === 0)
       return json({ error: "agent_unavailable" }, 503);
     const citations = extractCitations(answer);
-    return json({ answer: citations.text, sources: citations.sources });
+    const sourceDocuments = (data as { source_documents?: unknown })
+      .source_documents;
+    return json({
+      answer: citations.text,
+      sources: citations.sources.map(title => ({
+        title,
+        documents: documentsForTitle(sourceDocuments, title, agentOrigin),
+      })),
+    });
   } catch (error) {
     if (
       error instanceof DOMException &&
