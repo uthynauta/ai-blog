@@ -2,6 +2,24 @@ import { describe, expect, it } from "vitest";
 import { extractCitations } from "../../src/worker/citations";
 
 describe("extractCitations", () => {
+  it.each([
+    "Sources: [[Work]], [[Education]].",
+    "Fuentes: [[Work]]; [[Education]]",
+    "** Sources:** [[Work]]; [[Education]].",
+  ])("removes citation-only footer punctuation: %s", footer => {
+    expect(extractCitations(`Answer text.\n${footer}`)).toEqual({
+      text: "Answer text.",
+      sources: ["Work", "Education"],
+    });
+  });
+
+  it("preserves prose on a final sources line containing citations", () => {
+    expect(extractCitations("Answer.\nSources: [[Work]]; see the original.")).toEqual({
+      text: "Answer.\nSources: ; see the original.",
+      sources: ["Work"],
+    });
+  });
+
   it("removes a final English sources line and returns its title", () => {
     expect(extractCitations("Answer text.\nSources: [[Selected Work]]")).toEqual({
       text: "Answer text.",

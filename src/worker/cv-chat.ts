@@ -55,7 +55,7 @@ function validAgentUrl(value?: string): string | undefined {
 function validDocumentPath(path: unknown): path is string {
   return (
     typeof path === "string" &&
-    /^\/v1\/documents\/[A-Za-z0-9_-]+\/original$/.test(path)
+    /^\/v1\/documents\/[A-Za-z0-9][A-Za-z0-9._-]*\/original$/.test(path)
   );
 }
 

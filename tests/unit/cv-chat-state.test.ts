@@ -9,6 +9,25 @@ import {
 } from "../../src/scripts/cv-chat-state";
 
 describe("CV chat presentation and state", () => {
+  it("keeps a PDF link with a safe dotted document ID", () => {
+    expect(parseSources([{
+      title: "Profile",
+      documents: [{ filename: "CV.pdf", url: "https://cv-agent.example/v1/documents/profile.v2/original" }],
+    }])).toEqual([{
+      title: "Profile",
+      documents: [{ filename: "CV.pdf", url: "https://cv-agent.example/v1/documents/profile.v2/original" }],
+    }]);
+  });
+
+  it.each(["..", ".", "%2e%2e", "../secret", ".hidden", "_hidden"])(
+    "rejects an unsafe document ID: %s", documentId => {
+      expect(parseSources([{
+        title: "Profile",
+        documents: [{ filename: "CV.pdf", url: `https://cv-agent.example/v1/documents/${documentId}/original` }],
+      }])).toEqual([{ title: "Profile", documents: [] }]);
+    }
+  );
+
 	it("keeps Worker-extracted source titles beside plain answer text", () => {
 		expect(
 			formatAnswer("Built an evaluation workflow.", [

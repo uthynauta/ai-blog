@@ -202,6 +202,25 @@ describe("CV chat Worker", () => {
     });
   });
 
+  it("returns a safe dotted document ID as a public PDF link", async () => {
+    await successfulFetch("Answer.\nSources: [[Profile]]", {
+      source_documents: [{
+        title: "Profile",
+        documents: [{ filename: "CV.pdf", path: "/v1/documents/profile.v2/original" }],
+      }],
+    });
+    const response = await worker.fetch(
+      chatRequest({ messages, turnstileToken: token }), makeEnv()
+    );
+    expect(await response.json()).toEqual({
+      answer: "Answer.",
+      sources: [{
+        title: "Profile",
+        documents: [{ filename: "CV.pdf", url: "https://cv-agent.example/v1/documents/profile.v2/original" }],
+      }],
+    });
+  });
+
   it("keeps cited titles when document metadata is absent or does not match", async () => {
     const { calls } = await successfulFetch(
       "Answer [[Known]] and [[Unknown]]",
@@ -232,6 +251,10 @@ describe("CV chat Worker", () => {
   it.each([
     ["relative path outside the document route", "/other/id/original"],
     ["traversal path", "/v1/documents/../secret/original"],
+    ["dot segment", "/v1/documents/./original"],
+    ["parent segment", "/v1/documents/../original"],
+    ["leading dot", "/v1/documents/.hidden/original"],
+    ["leading underscore", "/v1/documents/_hidden/original"],
     ["encoded traversal path", "/v1/documents/%2e%2e/original"],
     ["absolute URL", "https://attacker.example/v1/documents/id/original"],
     ["query string", "/v1/documents/id/original?download=1"],

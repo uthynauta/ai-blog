@@ -14,7 +14,7 @@ export function extractCitations(answer: string): {
   const citationList = sourceLabel
     ? finalLine.slice(sourceLabel[0].length)
     : "";
-  if (sourceLabel && /^[\s,·]*$/.test(citationList.replace(CITATION, ""))) {
+  if (sourceLabel && /^[\s,·;.]*$/.test(citationList.replace(CITATION, ""))) {
     finalLineCitations = citationList;
     lines.pop();
   }

@@ -47,7 +47,9 @@ function isVerifiedPdfDocument(value: unknown): value is CvSourceDocument {
       parsed.protocol === "https:" &&
       !parsed.username &&
       !parsed.password &&
-      /^\/v1\/documents\/[A-Za-z0-9_-]+\/original$/.test(parsed.pathname) &&
+      /^\/v1\/documents\/[A-Za-z0-9][A-Za-z0-9._-]*\/original$/.test(
+        parsed.pathname
+      ) &&
       !parsed.search &&
       !parsed.hash
     );
