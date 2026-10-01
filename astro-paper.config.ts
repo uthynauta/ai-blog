@@ -25,7 +25,16 @@ export default defineAstroPaperConfig({
     },
     search: "pagefind",
   },
-  socials: [],
+  socials: [
+    {
+      name: "github",
+      url: "https://github.com/uthynauta/",
+    },
+    {
+      name: "linkedin",
+      url: "https://www.linkedin.com/in/othongc/",
+    },
+  ],
   shareLinks: [
     { name: "whatsapp", url: "https://wa.me/?text=" },
     { name: "facebook", url: "https://www.facebook.com/sharer.php?u=" },
