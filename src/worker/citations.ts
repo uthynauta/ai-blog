@@ -1,5 +1,6 @@
 const CITATION = /\[\[([^\[\]\r\n]*)\]\]/g;
-const SOURCE_LABEL = /^\s*(?:sources|fuentes)\s*:/i;
+const SOURCE_LABEL =
+  /^\s*(?:\*\*|__|\*|_)?\s*(?:sources|fuentes)\s*(?:\*\*|__|\*|_)?\s*:\s*(?:\*\*|__|\*|_)?\s*/i;
 
 export function extractCitations(answer: string): {
   text: string;
@@ -13,7 +14,7 @@ export function extractCitations(answer: string): {
   const citationList = sourceLabel
     ? finalLine.slice(sourceLabel[0].length)
     : "";
-  if (sourceLabel && /^[\s,]*$/.test(citationList.replace(CITATION, ""))) {
+  if (sourceLabel && /^[\s,·]*$/.test(citationList.replace(CITATION, ""))) {
     finalLineCitations = citationList;
     lines.pop();
   }

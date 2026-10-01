@@ -9,12 +9,30 @@ describe("extractCitations", () => {
     });
   });
 
+  it("removes a final Markdown-emphasized sources line", () => {
+    expect(
+      extractCitations("Answer text.\n**Sources:** [[Work]], [[Education]]")
+    ).toEqual({
+      text: "Answer text.",
+      sources: ["Work", "Education"],
+    });
+  });
+
   it("removes a final Spanish sources line and parses comma-separated titles", () => {
     expect(
       extractCitations("Answer text.\nFuentes: [[Work, Projects]], [[Education]]")
     ).toEqual({
       text: "Answer text.",
       sources: ["Work, Projects", "Education"],
+    });
+  });
+
+  it("parses middle-dot-separated Spanish citations", () => {
+    expect(
+      extractCitations("Answer text.\nFuentes: [[Work]] · [[Education]]")
+    ).toEqual({
+      text: "Answer text.",
+      sources: ["Work", "Education"],
     });
   });
 
