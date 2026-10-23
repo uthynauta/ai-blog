@@ -6,7 +6,7 @@ services:
     working_dir: /app
     command: >
       bash -c "
-      pnpm runtime set node 24 -g
+      pnpm runtime set node 24.22.1 -g
       && pnpm install --frozen-lockfile
       && pnpm prune
       && pnpm run dev --host 0.0.0.0"

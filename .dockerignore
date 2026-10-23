@@ -1,5 +1,16 @@
-# Ignore Astro files
-*.astro
+# Keep source files, but exclude local configuration and caches
+.git/
+.worktrees/
+.superpowers/
+.wrangler/
+.astro/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+test-results/
+playwright-report/
+public/pagefind/
 
 # Ignore node_modules directory
 node_modules/
